@@ -147,3 +147,99 @@ AttributeError: module 'google.genai' has no attribute 'configure'
 2026-05-18 00:26:19 - werkzeug - INFO - 127.0.0.1 - - [18/May/2026 00:26:19] "[33mGET / HTTP/1.1[0m" 404 -
 2026-05-18 02:21:20 - werkzeug - INFO - 127.0.0.1 - - [18/May/2026 02:21:20] "GET /health HTTP/1.1" 200 -
 2026-05-18 02:21:20 - werkzeug - INFO - 127.0.0.1 - - [18/May/2026 02:21:20] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2026-05-24 13:55:39 - root - INFO - Root logger configured
+2026-05-24 13:55:39 - api.app - INFO - Initializing global components...
+2026-05-24 13:55:41 - api.app - INFO - GeminiEmbedder initialized
+2026-05-24 13:55:43 - httpx - INFO - HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-2:batchEmbedContents "HTTP/1.1 200 OK"
+2026-05-24 13:55:43 - api.app - INFO - Embedding dimension: 1536
+2026-05-24 13:55:43 - embedding.vector_store - INFO - Created new FAISS index with dimension 1536, metric=cosine
+2026-05-24 13:55:43 - embedding.vector_store - INFO - FAISSVectorStore initialized at E:\Mycourse\Github\Book Recommender\Booki\data\faiss\summary_index.faiss, current size=0
+2026-05-24 13:55:43 - api.app - INFO - Summary store loaded from E:\Mycourse\Github\Book Recommender\Booki\data\faiss\summary_index.faiss, size=0
+2026-05-24 13:55:43 - embedding.vector_store - INFO - Created new FAISS index with dimension 1536, metric=cosine
+2026-05-24 13:55:43 - embedding.vector_store - INFO - FAISSVectorStore initialized at E:\Mycourse\Github\Book Recommender\Booki\data\faiss\fulltext_index.faiss, current size=0
+2026-05-24 13:55:43 - api.app - INFO - Fulltext store loaded from E:\Mycourse\Github\Book Recommender\Booki\data\faiss\fulltext_index.faiss, size=0
+2026-05-24 13:55:43 - retrieval.retriever - INFO - Retriever initialized
+2026-05-24 13:55:43 - retrieval.reranker - INFO - Reranker initialized with model jina-reranker-v3
+2026-05-24 13:55:43 - generation.answer_generator - INFO - AnswerGenerator initialized with model gemini-2.5-pro
+2026-05-24 13:55:43 - api.app - INFO - All global components loaded successfully
+2026-05-24 13:55:44 - api.app - WARNING - Content books file not found: data\metadata\content_books.jsonl
+2026-05-24 13:55:44 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:7860
+ * Running on http://192.168.0.100:7860
+2026-05-24 13:55:44 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-05-24 13:57:52 - werkzeug - INFO - 127.0.0.1 - - [24/May/2026 13:57:52] "[33mGET / HTTP/1.1[0m" 404 -
+2026-05-24 14:02:35 - root - INFO - Root logger configured
+2026-05-24 14:02:35 - api.app - INFO - Initializing global components...
+2026-05-24 14:02:36 - api.app - INFO - GeminiEmbedder initialized
+2026-05-24 14:02:37 - httpx - INFO - HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-2:batchEmbedContents "HTTP/1.1 200 OK"
+2026-05-24 14:02:37 - api.app - INFO - Embedding dimension: 1536
+2026-05-24 14:02:37 - embedding.vector_store - INFO - Created new FAISS index with dimension 1536, metric=cosine
+2026-05-24 14:02:37 - embedding.vector_store - INFO - FAISSVectorStore initialized at E:\Mycourse\Github\Book Recommender\Booki\data\faiss\summary_index.faiss, current size=0
+2026-05-24 14:02:37 - api.app - INFO - Summary store loaded from E:\Mycourse\Github\Book Recommender\Booki\data\faiss\summary_index.faiss, size=0
+2026-05-24 14:02:37 - embedding.vector_store - INFO - Created new FAISS index with dimension 1536, metric=cosine
+2026-05-24 14:02:37 - embedding.vector_store - INFO - FAISSVectorStore initialized at E:\Mycourse\Github\Book Recommender\Booki\data\faiss\fulltext_index.faiss, current size=0
+2026-05-24 14:02:37 - api.app - INFO - Fulltext store loaded from E:\Mycourse\Github\Book Recommender\Booki\data\faiss\fulltext_index.faiss, size=0
+2026-05-24 14:02:37 - retrieval.retriever - INFO - Retriever initialized
+2026-05-24 14:02:37 - retrieval.reranker - INFO - Reranker initialized with model jina-reranker-v3
+2026-05-24 14:02:37 - generation.answer_generator - INFO - AnswerGenerator initialized with model gemini-2.5-pro
+2026-05-24 14:02:37 - api.app - INFO - All global components loaded successfully
+2026-05-24 14:02:37 - api.app - WARNING - Content books file not found: data\metadata\content_books.jsonl
+2026-05-24 14:02:37 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:7860
+ * Running on http://192.168.0.100:7860
+2026-05-24 14:02:37 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-05-24 14:03:21 - httpx - INFO - HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-2:batchEmbedContents "HTTP/1.1 200 OK"
+2026-05-24 14:03:21 - werkzeug - INFO - 127.0.0.1 - - [24/May/2026 14:03:21] "GET /api/admin/status HTTP/1.1" 200 -
+2026-05-24 14:03:24 - httpx - INFO - HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-2:batchEmbedContents "HTTP/1.1 200 OK"
+2026-05-24 14:03:24 - werkzeug - INFO - 127.0.0.1 - - [24/May/2026 14:03:24] "GET /api/admin/status HTTP/1.1" 200 -
+2026-05-24 14:03:38 - httpx - INFO - HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-2:batchEmbedContents "HTTP/1.1 200 OK"
+2026-05-24 14:03:38 - werkzeug - INFO - 127.0.0.1 - - [24/May/2026 14:03:38] "GET /api/admin/status HTTP/1.1" 200 -
+2026-05-24 14:03:48 - werkzeug - INFO - 127.0.0.1 - - [24/May/2026 14:03:48] "OPTIONS /api/recommend HTTP/1.1" 200 -
+2026-05-24 14:03:48 - api.routes.recommend - INFO - Received recommendation query: hai, siapa kamu?
+2026-05-24 14:03:49 - httpx - INFO - HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-2:batchEmbedContents "HTTP/1.1 200 OK"
+2026-05-24 14:03:49 - retrieval.retriever - WARNING - Summary index is empty
+2026-05-24 14:03:49 - api.routes.recommend - WARNING - No summary results found
+2026-05-24 14:03:49 - werkzeug - INFO - 127.0.0.1 - - [24/May/2026 14:03:49] "POST /api/recommend HTTP/1.1" 200 -
+2026-05-24 14:04:17 - werkzeug - INFO - 127.0.0.1 - - [24/May/2026 14:04:17] "OPTIONS /api/recommend HTTP/1.1" 200 -
+2026-05-24 14:04:17 - api.routes.recommend - INFO - Received recommendation query: carikan buku bahasa indonesia untuk seluruh jenjang SD
+2026-05-24 14:04:17 - httpx - INFO - HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-2:batchEmbedContents "HTTP/1.1 200 OK"
+2026-05-24 14:04:17 - retrieval.retriever - WARNING - Summary index is empty
+2026-05-24 14:04:17 - api.routes.recommend - WARNING - No summary results found
+2026-05-24 14:04:17 - werkzeug - INFO - 127.0.0.1 - - [24/May/2026 14:04:17] "POST /api/recommend HTTP/1.1" 200 -
+2026-05-24 14:04:32 - werkzeug - INFO - 127.0.0.1 - - [24/May/2026 14:04:32] "OPTIONS /api/recommend HTTP/1.1" 200 -
+2026-05-24 14:04:32 - api.routes.recommend - INFO - Received recommendation query: carikan saya buku matematika
+2026-05-24 14:04:32 - httpx - INFO - HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-2:batchEmbedContents "HTTP/1.1 200 OK"
+2026-05-24 14:04:32 - retrieval.retriever - WARNING - Summary index is empty
+2026-05-24 14:04:32 - api.routes.recommend - WARNING - No summary results found
+2026-05-24 14:04:32 - werkzeug - INFO - 127.0.0.1 - - [24/May/2026 14:04:32] "POST /api/recommend HTTP/1.1" 200 -
+2026-05-24 14:04:44 - httpx - INFO - HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-2:batchEmbedContents "HTTP/1.1 200 OK"
+2026-05-24 14:04:44 - werkzeug - INFO - 127.0.0.1 - - [24/May/2026 14:04:44] "GET /api/admin/status HTTP/1.1" 200 -
+2026-05-24 14:05:00 - werkzeug - INFO - 127.0.0.1 - - [24/May/2026 14:05:00] "OPTIONS /api/recommend HTTP/1.1" 200 -
+2026-05-24 14:05:00 - api.routes.recommend - INFO - Received recommendation query: adakah yang bisa dijawab
+2026-05-24 14:05:01 - httpx - INFO - HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-2:batchEmbedContents "HTTP/1.1 200 OK"
+2026-05-24 14:05:01 - retrieval.retriever - WARNING - Summary index is empty
+2026-05-24 14:05:01 - api.routes.recommend - WARNING - No summary results found
+2026-05-24 14:05:01 - werkzeug - INFO - 127.0.0.1 - - [24/May/2026 14:05:01] "POST /api/recommend HTTP/1.1" 200 -
+2026-05-24 14:21:19 - root - INFO - Root logger configured
+2026-05-24 14:21:19 - api.app - INFO - Initializing global components...
+2026-05-24 14:21:22 - api.app - INFO - GeminiEmbedder initialized
+2026-05-24 14:21:23 - httpx - INFO - HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-2:batchEmbedContents "HTTP/1.1 200 OK"
+2026-05-24 14:21:23 - api.app - INFO - Embedding dimension: 1536
+2026-05-24 14:21:23 - embedding.vector_store - INFO - Loaded FAISS index with 6 vectors, 6 total metadata, 0 deleted
+2026-05-24 14:21:23 - embedding.vector_store - INFO - FAISSVectorStore initialized at E:\Mycourse\Github\Book Recommender\Booki\data\faiss\summary_index.faiss, current size=6
+2026-05-24 14:21:23 - api.app - INFO - Summary store loaded from E:\Mycourse\Github\Book Recommender\Booki\data\faiss\summary_index.faiss, size=6
+2026-05-24 14:21:23 - embedding.vector_store - INFO - Loaded FAISS index with 26 vectors, 26 total metadata, 0 deleted
+2026-05-24 14:21:23 - embedding.vector_store - INFO - FAISSVectorStore initialized at E:\Mycourse\Github\Book Recommender\Booki\data\faiss\fulltext_index.faiss, current size=26
+2026-05-24 14:21:23 - api.app - INFO - Fulltext store loaded from E:\Mycourse\Github\Book Recommender\Booki\data\faiss\fulltext_index.faiss, size=26
+2026-05-24 14:21:23 - retrieval.retriever - INFO - Retriever initialized
+2026-05-24 14:21:23 - retrieval.reranker - INFO - Reranker initialized with model jina-reranker-v3
+2026-05-24 14:21:23 - generation.answer_generator - INFO - AnswerGenerator initialized with model gemini-2.5-pro
+2026-05-24 14:21:23 - api.app - INFO - All global components loaded successfully
+2026-05-24 14:21:24 - api.app - WARNING - Content books file not found: data\metadata\content_books.jsonl
+2026-05-24 14:21:24 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:7860
+ * Running on http://192.168.0.100:7860
+2026-05-24 14:21:24 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
