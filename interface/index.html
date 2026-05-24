@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RAG Book Interface</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f4f4f9; }
+        .nav { margin-bottom: 20px; }
+        .nav button { padding: 10px 20px; margin-right: 10px; cursor: pointer; }
+        .page { display: none; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        .active-page { display: block; }
+        /* Chat Styles */
+        #chat-box { height: 400px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; margin-bottom: 10px; border-radius: 4px; background: #fafafa;}
+        .message { margin-bottom: 15px; }
+        .user-msg { text-align: right; color: blue; }
+        .bot-msg { text-align: left; color: green; }
+        .book-card { border: 1px solid #ddd; padding: 10px; margin-top: 5px; border-radius: 4px; background: #fff;}
+        .selected-books { margin-bottom: 15px; padding: 10px; background: #eef; border-radius: 4px; }
+        /* Admin Styles */
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; }
+        .form-group input, .form-group textarea { width: 100%; padding: 8px; box-sizing: border-box; }
+        #admin-logs { height: 200px; overflow-y: auto; background: #333; color: #0f0; padding: 10px; font-family: monospace; }
+        button { padding: 8px 15px; cursor: pointer; background: #007bff; color: #fff; border: none; border-radius: 4px;}
+        button:hover { background: #0056b3; }
+        button:disabled { background: #ccc; cursor: not-allowed; }
+    </style>
+</head>
+<body>
+
+    <div class="nav">
+        <button onclick="switchPage('chat-page')">Chat & Rekomendasi (Page 1)</button>
+        <button onclick="switchPage('admin-page')">Admin Control (Page 2)</button>
+    </div>
+
+    <!-- PAGE 1: Chatbot & Rekomendasi Buku -->
+    <div id="chat-page" class="page active-page">
+        <h2>Tanya Rekomendasi Buku</h2>
+        
+        <div class="selected-books" id="selected-books-container" style="display:none;">
+            <strong>Buku yang dipilih untuk Deep QA:</strong>
+            <ul id="selected-books-list"></ul>
+            <button onclick="clearSelectedBooks()">Clear Pilihan</button>
+        </div>
+
+        <div id="chat-box"></div>
+        
+        <div style="display: flex; gap: 10px;">
+            <input type="text" id="chat-input" placeholder="Tanyakan rekomendasi buku atau pertanyaan mendalam..." style="flex-grow: 1; padding: 10px;">
+            <button id="send-btn" onclick="sendMessage()">Kirim</button>
+        </div>
+    </div>
+
+    <!-- PAGE 2: Admin Control -->
+    <div id="admin-page" class="page">
+        <h2>Admin - Kelola Database Buku</h2>
+        
+        <div style="display: flex; gap: 20px;">
+            <!-- Form Add / Update -->
+            <div style="flex: 1;">
+                <h3 id="admin-form-title">Tambah Buku</h3>
+                <div class="form-group">
+                    <label>ID Buku (kosongkan jika tambah otomatis, isi untuk update/hapus)</label>
+                    <input type="text" id="book-id">
+                </div>
+                <div class="form-group">
+                    <label>Judul Buku</label>
+                    <input type="text" id="book-title">
+                </div>
+                <div class="form-group">
+                    <label>Metadata / Penulis</label>
+                    <input type="text" id="book-metadata">
+                </div>
+                <div class="form-group">
+                    <label>Ringkasan</label>
+                    <textarea id="book-summary" rows="4"></textarea>
+                </div>
+                <div>
+                    <button onclick="adminAction('add')">Tambah Book</button>
+                    <button onclick="adminAction('update')" style="background-color: #ffc107; color: #000;">Update Book</button>
+                    <button onclick="adminAction('delete')" style="background-color: #dc3545;">Hapus Book (berdasarkan ID)</button>
+                </div>
+            </div>
+
+            <!-- Logs / Status -->
+            <div style="flex: 1;">
+                <h3>Status Database & Logs</h3>
+                <button onclick="fetchDatabaseStatus()" style="margin-bottom: 10px;">Refresh Status</button>
+                <div id="admin-logs"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts (Modularized) -->
+    <script src="js/api.js"></script>
+    <script src="js/chat.js"></script>
+    <script src="js/admin.js"></script>
+    <script>
+        function switchPage(pageId) {
+            document.querySelectorAll('.page').forEach(page => page.classList.remove('active-page'));
+            document.getElementById(pageId).classList.add('active-page');
+        }
+    </script>
+</body>
+</html>

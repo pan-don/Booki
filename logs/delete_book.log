@@ -1,0 +1,47 @@
+2026-05-04 10:03:08 - root - INFO - Root logger configured
+2026-05-04 10:03:13 - scripts.add_book - INFO - Processing book: Prakarya Semester 1 Kelas VII (test_book_prakarya_001)
+2026-05-04 10:03:13 - scripts.add_book - INFO - Using overridden summary.
+2026-05-04 10:03:13 - chunking.text_chunker - INFO - Created 1 chunks from text of length 35 (size=30000, overlap=1000)
+2026-05-04 10:03:13 - scripts.add_book - INFO - Created 1 chunks for book test_book_prakarya_001
+2026-05-04 10:03:13 - scripts.add_book - INFO - Completed book test_book_prakarya_001: summary + 1 chunks
+2026-05-04 10:03:13 - scripts.add_book - INFO - Successfully added new book test_book_prakarya_001 to system.
+2026-05-04 10:03:13 - scripts.delete_book - INFO - Removed metadata for book test_book_prakarya_001
+2026-05-04 10:03:15 - scripts.update_book - INFO - Updated metadata for book test_book_prakarya_001 in <MagicMock name='METADATA_FILE' id='1434757115120'>
+2026-05-04 10:03:15 - scripts.update_book - INFO - Updated summary vector for book test_book_prakarya_001
+2026-05-04 10:41:57 - root - INFO - Root logger configured
+2026-05-04 10:41:58 - scripts.add_book - INFO - Processing book: Prakarya Semester 1 Kelas VII (test_book_prakarya_001)
+2026-05-04 10:41:58 - scripts.add_book - INFO - Using overridden summary.
+2026-05-04 10:41:58 - chunking.text_chunker - INFO - Created 1 chunks from text of length 35 (size=30000, overlap=1000)
+2026-05-04 10:41:58 - scripts.add_book - INFO - Created 1 chunks for book test_book_prakarya_001
+2026-05-04 10:41:58 - scripts.add_book - INFO - Completed book test_book_prakarya_001: summary + 1 chunks
+2026-05-04 10:41:58 - scripts.add_book - INFO - Successfully added new book test_book_prakarya_001 to system.
+2026-05-04 10:41:58 - scripts.delete_book - INFO - Removed metadata for book test_book_prakarya_001
+2026-05-04 10:41:58 - scripts.delete_book - INFO - Soft deleted <MagicMock name='SummaryVectorStore().delete_by_book_id()' id='1406003077072'> vectors from Summary index for test_book_prakarya_001
+2026-05-04 10:41:58 - scripts.delete_book - INFO - Soft deleted <MagicMock name='FulltextVectorStore().delete_by_book_id()' id='1406003078416'> vectors from Fulltext index for test_book_prakarya_001
+2026-05-04 10:41:58 - scripts.update_book - INFO - Updated metadata for book test_book_prakarya_001 in <MagicMock name='METADATA_FILE' id='1406003075728'>
+2026-05-04 10:41:58 - scripts.update_book - INFO - Updated summary vector for book test_book_prakarya_001
+2026-05-04 10:44:26 - root - INFO - Root logger configured
+2026-05-04 10:47:29 - root - INFO - Root logger configured
+2026-05-04 10:47:29 - scripts.add_book - INFO - Processing book: Prakarya Semester 1 Kelas VII (test_book_prakarya_001)
+2026-05-04 10:47:29 - scripts.add_book - INFO - Using overridden summary.
+2026-05-04 10:47:29 - chunking.text_chunker - INFO - Created 1 chunks from text of length 35 (size=30000, overlap=1000)
+2026-05-04 10:47:29 - scripts.add_book - INFO - Created 1 chunks for book test_book_prakarya_001
+2026-05-04 10:47:29 - scripts.add_book - INFO - Completed book test_book_prakarya_001: summary + 1 chunks
+2026-05-04 10:47:29 - scripts.add_book - INFO - Successfully added new book test_book_prakarya_001 to system.
+2026-05-04 10:47:29 - scripts.delete_book - INFO - Removed metadata for book test_book_prakarya_001
+2026-05-04 10:47:29 - scripts.delete_book - INFO - Soft deleted <MagicMock name='SummaryVectorStore().delete_by_book_id()' id='2627075785456'> vectors from Summary index for test_book_prakarya_001
+2026-05-04 10:47:29 - scripts.delete_book - INFO - Soft deleted <MagicMock name='FulltextVectorStore().delete_by_book_id()' id='2627075786800'> vectors from Fulltext index for test_book_prakarya_001
+2026-05-04 10:47:29 - scripts.update_book - INFO - Updated metadata for book test_book_prakarya_001 in <MagicMock name='METADATA_FILE' id='2627074843248'>
+2026-05-04 10:47:29 - scripts.update_book - INFO - Updated summary vector for book test_book_prakarya_001
+2026-05-04 10:48:52 - root - INFO - Root logger configured
+2026-05-04 10:48:52 - scripts.add_book - INFO - Processing book: Prakarya Semester 1 Kelas VII (test_book_prakarya_001)
+2026-05-04 10:48:52 - scripts.add_book - INFO - Using overridden summary.
+2026-05-04 10:48:52 - chunking.text_chunker - INFO - Created 1 chunks from text of length 35 (size=30000, overlap=1000)
+2026-05-04 10:48:52 - scripts.add_book - INFO - Created 1 chunks for book test_book_prakarya_001
+2026-05-04 10:48:52 - scripts.add_book - INFO - Completed book test_book_prakarya_001: summary + 1 chunks
+2026-05-04 10:48:52 - scripts.add_book - INFO - Successfully added new book test_book_prakarya_001 to system.
+2026-05-04 10:48:52 - scripts.delete_book - INFO - Removed metadata for book test_book_prakarya_001
+2026-05-04 10:48:52 - scripts.delete_book - INFO - Soft deleted <MagicMock name='SummaryVectorStore().delete_by_book_id()' id='2387953468144'> vectors from Summary index for test_book_prakarya_001
+2026-05-04 10:48:52 - scripts.delete_book - INFO - Soft deleted <MagicMock name='FulltextVectorStore().delete_by_book_id()' id='2387953469488'> vectors from Fulltext index for test_book_prakarya_001
+2026-05-04 10:48:52 - scripts.update_book - INFO - Updated metadata for book test_book_prakarya_001 in <MagicMock name='METADATA_FILE' id='2387952542320'>
+2026-05-04 10:48:52 - scripts.update_book - INFO - Updated summary vector for book test_book_prakarya_001

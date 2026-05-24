@@ -1,0 +1,149 @@
+2026-05-04 13:52:26 - root - INFO - Root logger configured
+2026-05-04 13:52:26 - api.app - INFO - Initializing global components...
+2026-05-04 13:52:27 - api.app - INFO - GeminiEmbedder initialized
+2026-05-04 13:52:28 - httpx - INFO - HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-2:batchEmbedContents "HTTP/1.1 200 OK"
+2026-05-04 13:52:28 - api.app - INFO - Embedding dimension: 1536
+2026-05-04 13:52:28 - embedding.vector_store - INFO - Created new FAISS index with dimension 1536, metric=cosine
+2026-05-04 13:52:28 - embedding.vector_store - INFO - FAISSVectorStore initialized at E:\Mycourse\RAG Book\data\faiss\summary_index.faiss, current size=0
+2026-05-04 13:52:28 - api.app - INFO - Summary store loaded from E:\Mycourse\RAG Book\data\faiss\summary_index.faiss, size=0
+2026-05-04 13:52:28 - embedding.vector_store - INFO - Created new FAISS index with dimension 1536, metric=cosine
+2026-05-04 13:52:28 - embedding.vector_store - INFO - FAISSVectorStore initialized at E:\Mycourse\RAG Book\data\faiss\fulltext_index.faiss, current size=0
+2026-05-04 13:52:28 - api.app - INFO - Fulltext store loaded from E:\Mycourse\RAG Book\data\faiss\fulltext_index.faiss, size=0
+2026-05-04 13:52:28 - retrieval.retriever - INFO - Retriever initialized
+2026-05-04 13:52:28 - retrieval.reranker - INFO - Reranker initialized with model jina-reranker-v3
+2026-05-04 13:52:28 - api.app - ERROR - Failed to initialize global components: module 'google.genai' has no attribute 'configure'
+Traceback (most recent call last):
+  File "E:\Mycourse\RAG Book\api\app.py", line 67, in create_app
+    answer_generator = AnswerGenerator()
+  File "E:\Mycourse\RAG Book\generation\answer_generator.py", line 64, in __init__
+    genai.configure(api_key=self.api_key_manager.get_current_key())
+    ^^^^^^^^^^^^^^^
+AttributeError: module 'google.genai' has no attribute 'configure'
+2026-05-04 13:53:09 - root - INFO - Root logger configured
+2026-05-04 13:53:09 - api.app - INFO - Initializing global components...
+2026-05-04 13:53:10 - api.app - INFO - GeminiEmbedder initialized
+2026-05-04 13:53:11 - httpx - INFO - HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-2:batchEmbedContents "HTTP/1.1 200 OK"
+2026-05-04 13:53:11 - api.app - INFO - Embedding dimension: 1536
+2026-05-04 13:53:11 - embedding.vector_store - INFO - Created new FAISS index with dimension 1536, metric=cosine
+2026-05-04 13:53:11 - embedding.vector_store - INFO - FAISSVectorStore initialized at E:\Mycourse\RAG Book\data\faiss\summary_index.faiss, current size=0
+2026-05-04 13:53:11 - api.app - INFO - Summary store loaded from E:\Mycourse\RAG Book\data\faiss\summary_index.faiss, size=0
+2026-05-04 13:53:11 - embedding.vector_store - INFO - Created new FAISS index with dimension 1536, metric=cosine
+2026-05-04 13:53:11 - embedding.vector_store - INFO - FAISSVectorStore initialized at E:\Mycourse\RAG Book\data\faiss\fulltext_index.faiss, current size=0
+2026-05-04 13:53:11 - api.app - INFO - Fulltext store loaded from E:\Mycourse\RAG Book\data\faiss\fulltext_index.faiss, size=0
+2026-05-04 13:53:11 - retrieval.retriever - INFO - Retriever initialized
+2026-05-04 13:53:11 - retrieval.reranker - INFO - Reranker initialized with model jina-reranker-v3
+2026-05-04 13:53:11 - generation.answer_generator - INFO - AnswerGenerator initialized with model gemini-2.5-pro
+2026-05-04 13:53:11 - api.app - INFO - All global components loaded successfully
+2026-05-04 13:53:14 - api.app - WARNING - Content books file not found: data\metadata\content_books.jsonl
+2026-05-04 13:53:14 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:7860
+ * Running on http://10.190.6.176:7860
+2026-05-04 13:53:14 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-05-18 00:15:21 - root - INFO - Root logger configured
+2026-05-18 00:15:21 - api.app - INFO - Initializing global components...
+2026-05-18 00:15:22 - api.app - INFO - GeminiEmbedder initialized
+2026-05-18 00:15:23 - httpx - INFO - HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-2:batchEmbedContents "HTTP/1.1 200 OK"
+2026-05-18 00:15:23 - api.app - INFO - Embedding dimension: 1536
+2026-05-18 00:15:23 - embedding.vector_store - INFO - Created new FAISS index with dimension 1536, metric=cosine
+2026-05-18 00:15:23 - embedding.vector_store - INFO - FAISSVectorStore initialized at E:\Mycourse\RAG Book\data\faiss\summary_index.faiss, current size=0
+2026-05-18 00:15:23 - api.app - INFO - Summary store loaded from E:\Mycourse\RAG Book\data\faiss\summary_index.faiss, size=0
+2026-05-18 00:15:23 - embedding.vector_store - INFO - Created new FAISS index with dimension 1536, metric=cosine
+2026-05-18 00:15:23 - embedding.vector_store - INFO - FAISSVectorStore initialized at E:\Mycourse\RAG Book\data\faiss\fulltext_index.faiss, current size=0
+2026-05-18 00:15:23 - api.app - INFO - Fulltext store loaded from E:\Mycourse\RAG Book\data\faiss\fulltext_index.faiss, size=0
+2026-05-18 00:15:23 - retrieval.retriever - INFO - Retriever initialized
+2026-05-18 00:15:23 - retrieval.reranker - INFO - Reranker initialized with model jina-reranker-v3
+2026-05-18 00:15:23 - generation.answer_generator - INFO - AnswerGenerator initialized with model gemini-2.5-pro
+2026-05-18 00:15:23 - api.app - INFO - All global components loaded successfully
+2026-05-18 00:15:23 - api.app - WARNING - Content books file not found: data\metadata\content_books.jsonl
+2026-05-18 00:15:24 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:7860
+ * Running on http://192.168.0.103:7860
+2026-05-18 00:15:24 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-05-18 00:15:29 - werkzeug - INFO - 127.0.0.1 - - [18/May/2026 00:15:29] "[33mGET / HTTP/1.1[0m" 404 -
+2026-05-18 00:15:29 - werkzeug - INFO - 127.0.0.1 - - [18/May/2026 00:15:29] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2026-05-18 00:17:50 - root - INFO - Root logger configured
+2026-05-18 00:17:50 - api.app - INFO - Initializing global components...
+2026-05-18 00:17:51 - api.app - INFO - GeminiEmbedder initialized
+2026-05-18 00:17:53 - httpx - INFO - HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-2:batchEmbedContents "HTTP/1.1 200 OK"
+2026-05-18 00:17:53 - api.app - INFO - Embedding dimension: 1536
+2026-05-18 00:17:53 - embedding.vector_store - INFO - Created new FAISS index with dimension 1536, metric=cosine
+2026-05-18 00:17:53 - embedding.vector_store - INFO - FAISSVectorStore initialized at E:\Mycourse\RAG Book\data\faiss\summary_index.faiss, current size=0
+2026-05-18 00:17:53 - api.app - INFO - Summary store loaded from E:\Mycourse\RAG Book\data\faiss\summary_index.faiss, size=0
+2026-05-18 00:17:53 - embedding.vector_store - INFO - Created new FAISS index with dimension 1536, metric=cosine
+2026-05-18 00:17:53 - embedding.vector_store - INFO - FAISSVectorStore initialized at E:\Mycourse\RAG Book\data\faiss\fulltext_index.faiss, current size=0
+2026-05-18 00:17:53 - api.app - INFO - Fulltext store loaded from E:\Mycourse\RAG Book\data\faiss\fulltext_index.faiss, size=0
+2026-05-18 00:17:53 - retrieval.retriever - INFO - Retriever initialized
+2026-05-18 00:17:53 - retrieval.reranker - INFO - Reranker initialized with model jina-reranker-v3
+2026-05-18 00:17:53 - generation.answer_generator - INFO - AnswerGenerator initialized with model gemini-2.5-pro
+2026-05-18 00:17:53 - api.app - INFO - All global components loaded successfully
+2026-05-18 00:17:53 - api.app - WARNING - Content books file not found: data\metadata\content_books.jsonl
+2026-05-18 00:17:53 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:7860
+ * Running on http://192.168.0.103:7860
+2026-05-18 00:17:53 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-05-18 00:18:00 - werkzeug - INFO - 127.0.0.1 - - [18/May/2026 00:18:00] "[33mGET / HTTP/1.1[0m" 404 -
+2026-05-18 00:18:06 - werkzeug - INFO - 192.168.0.103 - - [18/May/2026 00:18:06] "[33mGET / HTTP/1.1[0m" 404 -
+2026-05-18 00:18:07 - werkzeug - INFO - 192.168.0.103 - - [18/May/2026 00:18:07] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2026-05-18 00:19:35 - root - INFO - Root logger configured
+2026-05-18 00:19:35 - api.app - INFO - Initializing global components...
+2026-05-18 00:19:36 - api.app - INFO - GeminiEmbedder initialized
+2026-05-18 00:19:36 - httpx - INFO - HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-2:batchEmbedContents "HTTP/1.1 200 OK"
+2026-05-18 00:19:37 - api.app - INFO - Embedding dimension: 1536
+2026-05-18 00:19:37 - embedding.vector_store - INFO - Created new FAISS index with dimension 1536, metric=cosine
+2026-05-18 00:19:37 - embedding.vector_store - INFO - FAISSVectorStore initialized at E:\Mycourse\RAG Book\data\faiss\summary_index.faiss, current size=0
+2026-05-18 00:19:37 - api.app - INFO - Summary store loaded from E:\Mycourse\RAG Book\data\faiss\summary_index.faiss, size=0
+2026-05-18 00:19:37 - embedding.vector_store - INFO - Created new FAISS index with dimension 1536, metric=cosine
+2026-05-18 00:19:37 - embedding.vector_store - INFO - FAISSVectorStore initialized at E:\Mycourse\RAG Book\data\faiss\fulltext_index.faiss, current size=0
+2026-05-18 00:19:37 - api.app - INFO - Fulltext store loaded from E:\Mycourse\RAG Book\data\faiss\fulltext_index.faiss, size=0
+2026-05-18 00:19:37 - retrieval.retriever - INFO - Retriever initialized
+2026-05-18 00:19:37 - retrieval.reranker - INFO - Reranker initialized with model jina-reranker-v3
+2026-05-18 00:19:37 - generation.answer_generator - INFO - AnswerGenerator initialized with model gemini-2.5-pro
+2026-05-18 00:19:37 - api.app - INFO - All global components loaded successfully
+2026-05-18 00:19:37 - api.app - WARNING - Content books file not found: data\metadata\content_books.jsonl
+2026-05-18 00:19:37 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:7860
+ * Running on http://192.168.0.103:7860
+2026-05-18 00:19:37 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-05-18 00:24:44 - root - INFO - Root logger configured
+2026-05-18 00:24:44 - api.app - INFO - Initializing global components...
+2026-05-18 00:24:45 - api.app - INFO - GeminiEmbedder initialized
+2026-05-18 00:24:46 - httpx - INFO - HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-2:batchEmbedContents "HTTP/1.1 200 OK"
+2026-05-18 00:24:46 - api.app - INFO - Embedding dimension: 1536
+2026-05-18 00:24:46 - embedding.vector_store - INFO - Created new FAISS index with dimension 1536, metric=cosine
+2026-05-18 00:24:46 - embedding.vector_store - INFO - FAISSVectorStore initialized at E:\Mycourse\RAG Book\data\faiss\summary_index.faiss, current size=0
+2026-05-18 00:24:46 - api.app - INFO - Summary store loaded from E:\Mycourse\RAG Book\data\faiss\summary_index.faiss, size=0
+2026-05-18 00:24:46 - embedding.vector_store - INFO - Created new FAISS index with dimension 1536, metric=cosine
+2026-05-18 00:24:46 - embedding.vector_store - INFO - FAISSVectorStore initialized at E:\Mycourse\RAG Book\data\faiss\fulltext_index.faiss, current size=0
+2026-05-18 00:24:46 - api.app - INFO - Fulltext store loaded from E:\Mycourse\RAG Book\data\faiss\fulltext_index.faiss, size=0
+2026-05-18 00:24:46 - retrieval.retriever - INFO - Retriever initialized
+2026-05-18 00:24:46 - retrieval.reranker - INFO - Reranker initialized with model jina-reranker-v3
+2026-05-18 00:24:46 - generation.answer_generator - INFO - AnswerGenerator initialized with model gemini-2.5-pro
+2026-05-18 00:24:46 - api.app - INFO - All global components loaded successfully
+2026-05-18 00:26:07 - root - INFO - Root logger configured
+2026-05-18 00:26:07 - api.app - INFO - Initializing global components...
+2026-05-18 00:26:08 - api.app - INFO - GeminiEmbedder initialized
+2026-05-18 00:26:09 - httpx - INFO - HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-2:batchEmbedContents "HTTP/1.1 200 OK"
+2026-05-18 00:26:09 - api.app - INFO - Embedding dimension: 1536
+2026-05-18 00:26:09 - embedding.vector_store - INFO - Created new FAISS index with dimension 1536, metric=cosine
+2026-05-18 00:26:09 - embedding.vector_store - INFO - FAISSVectorStore initialized at E:\Mycourse\RAG Book\data\faiss\summary_index.faiss, current size=0
+2026-05-18 00:26:09 - api.app - INFO - Summary store loaded from E:\Mycourse\RAG Book\data\faiss\summary_index.faiss, size=0
+2026-05-18 00:26:09 - embedding.vector_store - INFO - Created new FAISS index with dimension 1536, metric=cosine
+2026-05-18 00:26:09 - embedding.vector_store - INFO - FAISSVectorStore initialized at E:\Mycourse\RAG Book\data\faiss\fulltext_index.faiss, current size=0
+2026-05-18 00:26:09 - api.app - INFO - Fulltext store loaded from E:\Mycourse\RAG Book\data\faiss\fulltext_index.faiss, size=0
+2026-05-18 00:26:09 - retrieval.retriever - INFO - Retriever initialized
+2026-05-18 00:26:09 - retrieval.reranker - INFO - Reranker initialized with model jina-reranker-v3
+2026-05-18 00:26:09 - generation.answer_generator - INFO - AnswerGenerator initialized with model gemini-2.5-pro
+2026-05-18 00:26:09 - api.app - INFO - All global components loaded successfully
+2026-05-18 00:26:09 - api.app - WARNING - Content books file not found: data\metadata\content_books.jsonl
+2026-05-18 00:26:09 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:7860
+ * Running on http://192.168.0.103:7860
+2026-05-18 00:26:09 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-05-18 00:26:19 - werkzeug - INFO - 127.0.0.1 - - [18/May/2026 00:26:19] "[33mGET / HTTP/1.1[0m" 404 -
+2026-05-18 02:21:20 - werkzeug - INFO - 127.0.0.1 - - [18/May/2026 02:21:20] "GET /health HTTP/1.1" 200 -
+2026-05-18 02:21:20 - werkzeug - INFO - 127.0.0.1 - - [18/May/2026 02:21:20] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
