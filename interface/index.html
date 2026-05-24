@@ -60,27 +60,33 @@
             <!-- Form Add / Update -->
             <div style="flex: 1;">
                 <h3 id="admin-form-title">Tambah Buku</h3>
-                <div class="form-group">
-                    <label>ID Buku (kosongkan jika tambah otomatis, isi untuk update/hapus)</label>
-                    <input type="text" id="book-id">
-                </div>
-                <div class="form-group">
-                    <label>Judul Buku</label>
-                    <input type="text" id="book-title">
-                </div>
-                <div class="form-group">
-                    <label>Metadata / Penulis</label>
-                    <input type="text" id="book-metadata">
-                </div>
-                <div class="form-group">
-                    <label>Ringkasan</label>
-                    <textarea id="book-summary" rows="4"></textarea>
-                </div>
-                <div>
-                    <button onclick="adminAction('add')">Tambah Book</button>
-                    <button onclick="adminAction('update')" style="background-color: #ffc107; color: #000;">Update Book</button>
-                    <button onclick="adminAction('delete')" style="background-color: #dc3545;">Hapus Book (berdasarkan ID)</button>
-                </div>
+                <form id="add-book-form" onsubmit="event.preventDefault(); adminAction('add');">
+                    <div class="form-group">
+                        <label>ID Buku (kosongkan jika tambah otomatis, isi untuk update/hapus)</label>
+                        <input type="text" id="book-id">
+                    </div>
+                    <div class="form-group">
+                        <label>Judul Buku</label>
+                        <input type="text" id="book-title">
+                    </div>
+                    <div class="form-group">
+                        <label>Metadata / Penulis</label>
+                        <input type="text" id="book-metadata" placeholder='{"jenjang": "SMA", "mata_pelajaran": "Fisika"}'>
+                    </div>
+                    <div class="form-group">
+                        <label>Ringkasan (Opsional jika upload PDF)</label>
+                        <textarea id="book-summary" rows="4"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Upload PDF Buku</label>
+                        <input type="file" id="book-pdf" accept="application/pdf">
+                    </div>
+                    <div>
+                        <button type="submit">Tambah Book</button>
+                        <button type="button" onclick="adminAction('update')" style="background-color: #ffc107; color: #000;">Update Book</button>
+                        <button type="button" onclick="adminAction('delete')" style="background-color: #dc3545;">Hapus Book (berdasarkan ID)</button>
+                    </div>
+                </form>
             </div>
 
             <!-- Logs / Status -->

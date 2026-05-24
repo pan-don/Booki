@@ -10,13 +10,26 @@ async function adminAction(actionType) {
     const title = document.getElementById('book-title').value.trim();
     const metadata = document.getElementById('book-metadata').value.trim();
     const summary = document.getElementById('book-summary').value.trim();
+    const pdfFile = document.getElementById('book-pdf').files[0];
 
     try {
         let result;
         if (actionType === 'add') {
-            const data = { title, metadata, summary };
-            result = await API.addBook(data);
+            const formData = new FormData();
+            if (id) formData.append('book_id', id);
+            formData.append('title', title);
+            formData.append('metadata', metadata);
+            formData.append('summary', summary);
+            if (pdfFile) {
+                formData.append('pdf_file', pdfFile);
+            }
+
+            logAdminAction('Uploading/Adding Book...', { title, hasPdf: !!pdfFile });
+            result = await API.addBook(formData);
             logAdminAction('Added Book', result);
+
+            // clear form on success
+            document.getElementById('add-book-form').reset();
         } 
         else if (actionType === 'update') {
             if (!id) return alert("ID Buku harus diisi untuk update.");

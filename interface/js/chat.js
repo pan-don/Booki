@@ -90,14 +90,25 @@ async function sendMessage() {
                         book.kelas ? `Kelas: ${book.kelas}` : null
                     ].filter(Boolean);
                     const metadataText = metadataParts.length > 0 ? metadataParts.join(" | ") : "-";
+
+                    let coverHtml = '';
+                    if (book.cover_image) {
+                        coverHtml = `<img src="${book.cover_image}" alt="Cover ${book.title}" style="max-width: 100px; max-height: 150px; display: block; margin-top: 10px; cursor: pointer; border: 1px solid #ccc; border-radius: 4px;" onclick="document.querySelector('#checkbox-${book.book_id}').click();" title="Klik untuk pilih dan tanya mendalam">`;
+                    }
+
                     replyHtml += `
-                        <div class="book-card">
-                            <label>
-                                <input type="checkbox" class="book-checkbox" onchange="toggleBookSelection('${book.book_id}', '${book.title}')">
-                                <strong>${book.title}</strong>
-                            </label>
-                            <p style="margin: 5px 0; font-size: 0.9em; color: #555;">Metadata: ${metadataText}</p>
-                            <p style="margin: 5px 0; font-size: 0.9em;"><em>Ringkasan:</em> ${book.summary}</p>
+                        <div class="book-card" style="display: flex; gap: 15px; align-items: start;">
+                            <div style="flex: 1;">
+                                <label style="display: block; font-size: 1.1em; cursor: pointer;">
+                                    <input type="checkbox" id="checkbox-${book.book_id}" class="book-checkbox" onchange="toggleBookSelection('${book.book_id}', '${book.title.replace(/'/g, "\\'")}')">
+                                    <strong>${book.title}</strong>
+                                </label>
+                                ${coverHtml}
+                            </div>
+                            <div style="flex: 3;">
+                                <p style="margin: 5px 0; font-size: 0.9em; color: #555;">Metadata: ${metadataText}</p>
+                                <p style="margin: 5px 0; font-size: 0.9em;"><em>Ringkasan:</em> ${book.summary}</p>
+                            </div>
                         </div>
                     `;
                 });

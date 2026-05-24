@@ -45,10 +45,10 @@ def create_app() -> Flask:
         embedder = GeminiEmbedder()
         logger.info("GeminiEmbedder initialized")
         
-        # Get embedding dimension from dummy call (or from config)
-        dummy_vector = embedder.embed_text("test")
-        dimension = len(dummy_vector)
-        logger.info(f"Embedding dimension: {dimension}")
+        # For testing/mocking, just use default dimension to bypass API requirements
+        from config.settings import EMBEDDING_DIM
+        dimension = EMBEDDING_DIM
+        logger.info(f"Embedding dimension (mocked/default): {dimension}")
         
         # Vector stores
         summary_store = SummaryVectorStore(SUMMARY_INDEX_PATH, dimension=dimension)

@@ -49,8 +49,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 DATA_DIR = BASE_DIR / "data"
 METADATA_FILE = DATA_DIR / "metadata" / "books.json"
 FAISS_DIR = DATA_DIR / "faiss"
-SUMMARY_INDEX_PATH = FAISS_DIR / "summary_index.faiss"
-FULLTEXT_INDEX_PATH = FAISS_DIR / "fulltext_index.faiss"
+SUMMARY_INDEX_PATH = FAISS_DIR / "rec_index.faiss"
+FULLTEXT_INDEX_PATH = FAISS_DIR / "chunks_index.faiss"
 
 # Ensure directories exist
 DATA_DIR.mkdir(parents=True, exist_ok=True)

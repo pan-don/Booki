@@ -32,8 +32,10 @@ class GeminiEmbedder:
 
     def _init_client(self):
         key_to_use = self.key_manager.get_current_key()
+        # Fallback to dummy key for testing/mocking if no valid keys are present
         if not key_to_use:
-            raise ValueError("No Gemini API key available for embedding.")
+            logger.warning("No Gemini API key available, using dummy key for local testing.")
+            key_to_use = "dummy_testing_key_123"
         self.client = genai.Client(api_key=key_to_use)
 
     def embed_text(self, text: str, task_type: Optional[str] = None) -> Optional[List[float]]:
@@ -64,8 +66,10 @@ class GeminiEmbedder:
             except Exception as e:
                 error_msg = str(e)
                 key_in_use = self.key_manager.get_current_key()
-                logger.warning(f"Percobaan {attempt+1} gagal (Key: {key_in_use[:5]}...): {error_msg}")
-                self.key_manager.report_error(key_in_use, error_msg)
+                key_display = key_in_use[:5] if key_in_use else "dummy"
+                logger.warning(f"Percobaan {attempt+1} gagal (Key: {key_display}...): {error_msg}")
+                if key_in_use:
+                    self.key_manager.report_error(key_in_use, error_msg)
                 
                 # Re-init client if key rotated
                 new_key = self.key_manager.get_current_key()

@@ -82,7 +82,8 @@ def recommend():
                 "mata_pelajaran": book.get('mata_pelajaran'),
                 "jenjang": book.get('jenjang'),
                 "kelas": book.get('kelas'),
-                "summary": book.get('summary_text')[:300],  # potongan ringkasan
+                "cover_image": book.get('link_sampul'),
+                "summary": book.get('summary_text')[:300] if book.get('summary_text') else "",  # potongan ringkasan
                 "relevance_score": book.get('rerank_score', book.get('score', 0))
             })
         

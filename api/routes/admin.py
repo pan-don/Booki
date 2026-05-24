@@ -207,15 +207,23 @@ def admin_status():
 
 @admin_bp.route('/admin/add', methods=['POST'])
 def admin_add_book():
-    data = request.get_json() or {}
+    from werkzeug.utils import secure_filename
+    import os
+
+    # Handle multipart/form-data for PDF upload
+    if request.content_type and 'multipart/form-data' in request.content_type:
+        data = request.form
+        pdf_file = request.files.get('pdf_file')
+    else:
+        data = request.get_json() or {}
+        pdf_file = None
+
     title = (data.get("title") or "").strip()
     summary = (data.get("summary") or "").strip()
     raw_metadata = data.get("metadata")
 
     if not title:
         return jsonify({"error": "Title is required"}), 400
-    if not summary:
-        return jsonify({"error": "Summary is required"}), 400
 
     metadata_dict = _parse_metadata_field(raw_metadata) or {}
     book_id = data.get("book_id") or metadata_dict.get("book_id") or str(uuid.uuid4())[:16]
@@ -224,21 +232,37 @@ def admin_add_book():
         "book_id": book_id,
         "judul_buku": title,
         "title": title,
-        "summary_text": summary
     }
+    if summary:
+        book_data["summary_text"] = summary
     book_data.update(metadata_dict)
 
     try:
         pdf_path = book_data.get("pdf_path") or book_data.get("link_pdf")
+
+        # Save uploaded PDF if present
+        if pdf_file and pdf_file.filename:
+            uploads_dir = Path("data/raw")
+            uploads_dir.mkdir(parents=True, exist_ok=True)
+            filename = secure_filename(pdf_file.filename)
+            saved_pdf_path = uploads_dir / f"{book_id}_{filename}"
+            pdf_file.save(str(saved_pdf_path))
+            pdf_path = str(saved_pdf_path)
+            book_data["pdf_path"] = pdf_path
+
         if pdf_path and ADD_BOOK_AVAILABLE:
-            success = add_new_book(book_data, interactive=False, override_summary=summary)
+            success = add_new_book(book_data, interactive=False, override_summary=summary if summary else None)
             if not success:
                 return jsonify({"error": "Failed to add book with PDF ingestion"}), 500
             return jsonify({
                 "status": "ok",
                 "message": "Book added with full ingestion",
-                "book_id": book_id
+                "book_id": book_id,
+                "pdf_path": pdf_path
             }), 201
+
+        if not summary:
+             return jsonify({"error": "Summary is required if no PDF is provided for ingestion"}), 400
 
         _add_summary_only_book(book_data)
         return jsonify({
@@ -248,7 +272,7 @@ def admin_add_book():
         }), 201
     except Exception as e:
         logger.error(f"Failed to add book: {e}", exc_info=True)
-        return jsonify({"error": "Failed to add book"}), 500
+        return jsonify({"error": f"Failed to add book: {str(e)}"}), 500
 
 
 @admin_bp.route('/admin/update/<book_id>', methods=['PUT'])
