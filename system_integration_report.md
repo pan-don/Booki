@@ -4,11 +4,12 @@
 
 An inspection of the `data/` directory confirmed the following formats and structures are currently in use by the system:
 
-- **`data/metadata/`**: Contains `books.json` and `content_books.jsonl` files holding JSON-based metadata about books, including IDs, titles, subject areas, grade levels, and cover image URLs.
-- **`data/faiss/`**: The vector store indices currently reside here. Instead of the names configured natively in `config/settings.py`, the FAISS models available in the environment are:
-  - `rec_index.faiss` and its metadata `rec_index.meta.pkl`.
-  - `chunks_index.faiss` and its metadata `chunks_index.meta.pkl`.
-- **`data/raw/`**: Intended to store the raw scraped `.pdf` files. It also holds `sibi_books.jsonl` representing raw ingestion manifests.
+- **`data/metadata/`**: This directory is currently empty. Earlier metadata files such as `books.json` and `content_books.jsonl` are no longer present. Instead, all primary metadata is now retrieved dynamically from the robust index stores or directly from the initial raw ingestion manifests.
+- **`data/faiss/`**: The vector store indices reside here and constitute the new core dataset for the RAG engine. Instead of the names configured natively in `config/settings.py`, the FAISS models available in the environment are:
+  - `rec_index.faiss` (the recommendation index) and its metadata map `rec_index.meta.pkl`.
+  - `chunks_index.faiss` (the chunk/full-text index) and its metadata map `chunks_index.meta.pkl`.
+  - `rec_embeddings.jsonl`: Raw extracted embeddings matching the recommendation index.
+- **`data/raw/`**: Holds `sibi_books.jsonl` representing the raw ingestion metadata and manifests for the books in the system. It also acts as the sink location for `.pdf` files uploaded natively by the admin UI.
 
 ## 2. Endpoint Health Checks and Minimal Backend Fixes
 

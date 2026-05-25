@@ -117,18 +117,8 @@ def create_app() -> Flask:
         return jsonify({"error": "Internal server error"}), 500
     
     book_metadata_map = {}
-    content_books_path = Path("data/metadata/content_books.jsonl")
-    if content_books_path.exists():
-        try:
-            for book in stream_jsonl(content_books_path):
-                book_id = book.get('book_id')
-                if book_id:
-                    book_metadata_map[book_id] = book
-            logger.info(f"Loaded {len(book_metadata_map)} book metadata entries from {content_books_path}")
-        except Exception as e:
-            logger.error(f"Failed to load book metadata: {e}")
-    else:
-        logger.warning(f"Content books file not found: {content_books_path}")
+    # Legacy metadata file is no longer present.
+    # Map will be populated dynamically from FAISS index metadata instead, or parsed from sibi_books if necessary.
 
     app.config['book_metadata_map'] = book_metadata_map
     
