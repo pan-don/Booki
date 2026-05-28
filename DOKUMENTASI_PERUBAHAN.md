@@ -29,3 +29,46 @@ Bila ingin memicu atau meriset ulang proses pembentukan Indeks Vektor secara off
    python3 scripts/rechunk_fulltext.py
    ```
 4. Script secara mandiri akan memuat (`load`) metadata JSONL dari `data/raw/sibi_books.jsonl`, membentuk indeks vektor secara modular (terhindar dari rate-limits), dan mengunci database FAISS akhir Anda secara atomik (*Atomic Swap*) menimpa *live-index* dengan nama `chunks_index.faiss` dan metadatanya `chunks_index.meta.pkl`. Status berhasil akan tertulis di log pada folder `logs/rechunk_migration.log`.
+## 📄 Dokumentasi Perubahan Sistem: Phase 2
+
+### Latar Belakang & Masalah Utama
+Pada fase sebelumnya, sistem memiliki dua titik kelemahan krusial:
+1. **Empty Search Results (Post-Filtering Hazard):** Metode retrieval awal (`Retriever.search_summary()`) hanya menarik sejumlah kecil dokumen (top 20) secara _raw_ dari _vector store_ FAISS sebelum tahap filtering metadata (jenjang, kelas, mata pelajaran). Jika 20 dokumen teratas ini gagal memenuhi kriteria metadata pengguna, pencarian akan mengembalikan daftar kosong meskipun buku relevan lainnya tersedia lebih jauh di dalam database.
+2. **Coupled UI Data & Text Response:** Respons `answer` dari API `/api/recommend` digunakan sebagai muatan penuh dari LLM yang merangkum keseluruhan data JSON. Hal ini menghabiskan token (inefisien), berisiko _hallucination_, dan mengunci frontend sehingga tidak bisa me-render komponen visual antarmuka/UI yang modular dan elegan.
+
+### Spesifikasi Arsitektur Logika Baru
+Untuk mengatasi masalah tersebut, berikut aliran pemrosesan yang dipisahkan:
+1. **Ekspansi Pooling FAISS:** Fungsi `search_summary` dan `search_fulltext` telah diatur untuk menarik `initial_k = 100` dokumen. Hal ini menjamin variabilitas dan ketersediaan kandidat pre-filter yang lebih luas bagi reranker.
+2. **Reranker Otomatis dengan Threshold Dinamis:** Alih-alih mengembalikan `top_5` secara statis, rekomendasi disaring (post-rerank) secara dinamis menggunakan nilai minimum kecocokan skor `relevance_score >= 0.60`.
+3. **Decoupling Data JSON & Narasi:** Proses REST API memetakan langsung data internal (seperti `link_sampul` pada indeks menjadi `cover_image`) di dalam array `recommendations`.
+4. **Instruksi Rigid LLM:** LLM Prompt pada `AnswerGenerator` diperintahkan secara absolut untuk tidak merepetisi kerangka (_bullet points_, daftar pustaka, dsb.), dan hanya fokus menjadi perantara komunikasi sapaan ramah (_chat interface_).
+
+### Tabel Spesifikasi Payload API
+
+| Elemen Request (POST `/recommend`) | Tipe | Contoh / Keterangan |
+| --- | --- | --- |
+| `query` | string | "Buku fisika SMA kelas 10" |
+
+**Contoh Struktur JSON Response Berhasil (200 OK):**
+```json
+{
+  "answer": "Halo Sobat Belajar! ✨ Wah, kamu sedang mencari materi tentang Fisika, ya? Aku sudah menemukan buku keren yang pas dengan kriteria kamu. Yuk, dipelajari! 😊",
+  "recommendations": [
+    {
+      "book_id": "848a47b...",
+      "title": "Fisika Dasar 1",
+      "author": "Anonim",
+      "cover_image": "https://url.ke/gambar.jpg",
+      "summary": "Buku yang komprehensif...",
+      "similarity_score": 0.82,
+      "relevance_score": 0.95
+    }
+  ]
+}
+```
+
+### Panduan Integrasi Frontend
+Bagi pengembang UI/Frontend:
+1. Kunci `answer` murni berisi pesan naratif penyemangat. Anda dapat menampilkan pesan ini di dalam _chat bubble_ pengguna/AI.
+2. Kunci `recommendations` adalah sebuah *array of objects*. Jika *array* tidak kosong, lakukan _mapping_ (`.map()`) terhadap data ini untuk menampilkan komponen kartu buku/Katalog Produk. Gunakan parameter `cover_image` sebagai properti `src` untuk label gambar.
+3. Nilai `relevance_score` dapat difungsikan sebagai lencana akurasi di setiap sudut kartu.

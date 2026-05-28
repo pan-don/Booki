@@ -137,16 +137,17 @@ class AnswerGenerator:
         context_str = "\n".join(books_context)
         
         user_prompt = f"""
-Halo! Berikut adalah daftar buku pelajaran yang mungkin sesuai dengan preferensimu:
+Konteks buku yang direkomendasikan secara logis oleh sistem:
 
 {context_str}
 
 Pertanyaan/preferensi pengguna: "{user_query}"
 
-Berdasarkan daftar di atas, berikan rekomendasi 1-3 buku terbaik dengan alasan yang jelas dan semangat belajar. 
-Jika ada lebih dari satu buku, urutkan dari yang paling sesuai. 
-Gunakan bahasa Indonesia yang ceria dan mudah dimengerti untuk anak sekolah. 
-Sertakan emoji sederhana seperti 📚, ✨, 😊 untuk membuatnya menyenangkan.
+Berdasarkan data di atas, berikan kalimat pengantar dan perbincangan naratif yang ramah, analitis, dan ceria.
+Sertakan alasan ringkas mengapa buku-buku ini direkomendasikan.
+DO NOT write rigid structural lists, bullet points, or repetitive metadata blocks for the books.
+The UI will render the structured list natively. Your job is ONLY to provide the conversational, engaging chat text.
+Gunakan bahasa Indonesia yang santai, selipkan emoji yang relevan seperti 📚, ✨, 😊.
 """
         
         messages = [

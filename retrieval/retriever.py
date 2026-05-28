@@ -162,6 +162,9 @@ class Retriever:
         self,
         query: str,
         query_vector: List[float],
+        filter_jenjang: Optional[str] = None,
+        filter_kelas: Optional[str] = None,
+        filter_mapel: Optional[str] = None,
         top_k: int = 10,
         filter_book_ids: Optional[List[str]] = None,
         alpha: float = 0.5
@@ -173,8 +176,8 @@ class Retriever:
             logger.warning("Summary index is empty")
             return []
         
-        # We retrieve more initially (e.g. 5x top_k) from FAISS to allow effective filtering & BM25 reranking
-        initial_k = top_k * 5
+        # We retrieve more initially from FAISS to allow effective filtering & BM25 reranking
+        initial_k = 100
         ids, scores, metadatas = self.summary_store.search(
             query_vector=query_vector,
             k=initial_k,
@@ -196,14 +199,26 @@ class Retriever:
         # 1. BM25 + FAISS Hybrid Rescoring
         results = self._compute_hybrid_scores(query, results, alpha=alpha)
             
-        # 2. Post-Filtering based on query intent
-        filters = self._extract_filters_from_query(query)
+        # 2. Post-Filtering based on explicit filters or query intent
+        filters = {"jenjang": [], "kelas": [], "mata_pelajaran": []}
+        if filter_jenjang:
+            filters["jenjang"].append(filter_jenjang)
+        if filter_kelas:
+            filters["kelas"].append(filter_kelas)
+        if filter_mapel:
+            filters["mata_pelajaran"].append(filter_mapel)
+
+        # Merge with intent filters if explicit filters are not enough
+        intent_filters = self._extract_filters_from_query(query)
+        for key in filters:
+            if not filters[key]:
+                filters[key] = intent_filters.get(key, [])
+
         if any(filters.values()):  # If any filters extracted
             filtered_results = self._apply_metadata_filters(results, filters)
-            if filtered_results:
-                results = filtered_results
-            else:
-                logger.warning("Post-filtering dropped all results, reverting to non-filtered hybrid results")
+            results = filtered_results
+            if not results:
+                logger.warning("Post-filtering dropped all results")
         
         logger.debug(f"Summary search returned {len(results[:top_k])} results (top_k={top_k})")
         return results[:top_k]
@@ -223,7 +238,7 @@ class Retriever:
             logger.warning("Fulltext index is empty")
             return []
         
-        initial_k = top_k * 5
+        initial_k = 100
         ids, scores, metadatas = self.fulltext_store.search(
             query_vector=query_vector,
             k=initial_k,
