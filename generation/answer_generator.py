@@ -85,50 +85,63 @@ class AnswerGenerator:
             self.cache_id = None
 
     def _call_gemini(self, dynamic_contents: List[Dict[str, Any]]) -> Optional[str]:
-        """Executes content generation with native parameter configuration and dynamic cache fallbacks."""
-        try:
-            client = genai.Client(api_key=self.api_key_manager.get_current_key())
-            
-            # Use cached path if available
-            if self.cache_id:
-                try:
-                    config = types.GenerateContentConfig(
-                        cached_content=self.cache_id,
-                        temperature=self.temperature,
-                        max_output_tokens=self.max_tokens
-                    )
-                    response = client.models.generate_content(
-                        model=self.model,
-                        contents=dynamic_contents,
-                        config=config
-                    )
-                    return response.text.strip() if response.text else None
-                except Exception as cache_err:
-                    logger.warning(f"Cache {self.cache_id} failed or expired, falling back to non-cached call. Err: {cache_err}")
-                    self.cache_id = None  # Reset cache ID to avoid further failures
+        """
+        Executes content generation by looping through available API keys on rate limits.
+        Maintains chat session context except during a live failover swap event.
+        """
+        total_keys = len(self.api_key_manager.keys) if self.api_key_manager else 1
+        attempts = 0
 
-            # Fallback path / non-cached path
-            config = types.GenerateContentConfig(
-                system_instruction=self.system_prompt,
-                temperature=self.temperature,
-                max_output_tokens=self.max_tokens
-            )
+        while attempts < total_keys:
+            current_key = self.api_key_manager.get_current_key()
+            try:
+                client = genai.Client(api_key=current_key)
 
-            # Manually inject few-shots if not using cache
-            full_contents = FEW_SHOT_EXAMPLES + dynamic_contents
+                # Use cached path if available
+                if self.cache_id:
+                    try:
+                        config = types.GenerateContentConfig(
+                            cached_content=self.cache_id,
+                            temperature=self.temperature,
+                            max_output_tokens=self.max_tokens
+                        )
+                        response = client.models.generate_content(
+                            model=self.model,
+                            contents=dynamic_contents,
+                            config=config
+                        )
+                        return response.text.strip() if response.text else None
+                    except Exception as cache_err:
+                        logger.warning(f"Cache {self.cache_id} failed or expired on key {current_key[:8]}..., falling back to non-cached call. Err: {cache_err}")
+                        self.cache_id = None  # Reset cache ID to avoid further failures on next keys
 
-            response = client.models.generate_content(
-                model=self.model,
-                contents=full_contents,
-                config=config
-            )
+                # Fallback path / non-cached path
+                config = types.GenerateContentConfig(
+                    system_instruction=self.system_prompt,
+                    temperature=self.temperature,
+                    max_output_tokens=self.max_tokens
+                )
 
-            return response.text.strip() if response.text else None
+                # Manually inject few-shots if not using cache
+                full_contents = FEW_SHOT_EXAMPLES + dynamic_contents
 
-        except Exception as e:
-            logger.error(f"Gemini API execution error: {e}")
-            self.api_key_manager.report_error(self.api_key_manager.get_current_key(), str(e))
-            return None
+                response = client.models.generate_content(
+                    model=self.model,
+                    contents=full_contents,
+                    config=config
+                )
+
+                return response.text.strip() if response.text else None
+
+            except Exception as e:
+                logger.warning(f"API Key {current_key[:8]}... failed: {str(e)}. Triggering failover.")
+                if self.api_key_manager:
+                    # Flag the broken key and force immediate internal rotation
+                    self.api_key_manager.report_error(current_key, str(e))
+                attempts += 1
+
+        logger.error("All available Gemini API keys in the rotation pool have been exhausted.")
+        return None
     
     def generate_recommendation(
         self,

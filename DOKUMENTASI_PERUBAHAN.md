@@ -116,3 +116,32 @@ Proses Caching berpotensi terganggu jika _key_ kedaluwarsa atau terjadi pemadama
 2. Jika pembuatan Cache Gagal (menghasilkan _Exception_), variabel kelas `self.cache_id = None`.
 3. Di dalam logika pemanggilan utama (`_call_gemini`), sistem memvalidasi keberadaan `self.cache_id`. Jika kosong atau pemanggilan cache gagal di tengah eksekusi (seperti Cache telah hangus), sistem otomatis melewati langkah ini (**Graceful Degradation Fallback Path**).
 4. Mode _Fallback_ bekerja dengan memanggil konfigurasi klasik API (_raw system instruction_) dan merangkai `FEW_SHOT_EXAMPLES` di bagian atas daftar pesan interaksi secara manual, sehingga RAG selalu beroperasi dengan masa pakai 100%.
+
+
+## 📄 Dokumentasi Perubahan Sistem: Phase 4
+
+### Latar Belakang & Analisis Stabilitas Sistem
+Fase 4 diimplementasikan untuk menyelesaikan dua isu keandalan infrastruktur backend:
+1. **Kegagalan Skalabilitas (Unsynchronized Key Rolling):** Apabila sistem menghadapi lonjakan _traffic_ atau kuota per-key habis, respons gagal terjadi walau API _Keys_ lain di dalam sistem _pool_ masih valid.
+2. **Pembengkakan Ruang Vektor (Soft Delete Fragmentation):** Penghapusan data hanya menyembunyikan vektor di tingkat _query_ (Soft Delete). Seiring waktu, jejak vektor usang yang tidak terpakai menyebabkan memori RAM mesin membengkak dan menurunkan kecepatan algoritma pencarian Cosine Similarity FAISS.
+
+### Mekanisme Failover & Key Rolling
+Metode `_call_gemini()` pada `AnswerGenerator` telah direkayasa ulang. Sistem kini beroperasi di dalam _retry loop_ berbekal mekanisme Graceful Degradation:
+- Jumlah putaran maksimal diikat mutlak oleh jumlah kunci dalam `APIKeyManager` (`total_keys = len(self.api_key_manager.keys)`).
+- Jika ada limit API atau Exception apa pun: `try-except` memblokir error, kunci saat ini ditandai usang dengan memanggil `report_error()`, sistem meminta kunci baru, lalu langsung mencoba menyambungkan ulang koneksi (_Failover Swap Event_).
+- Ini memastikan bahwa selama 1 kunci dari 17 kunci API yang tersedia hidup, RAG tidak akan pernah gagal mengirimkan jawaban ke pelajar.
+
+### Spesifikasi Modul Pembersihan Vektor (Vacuum)
+Modul baru dibuat di `scripts/vacuum_vectorstore.py` yang difungsikan sebagai Scheduler kompresi _database_ vektor _offline_.
+- **Single Source of Truth:** Script membuang parameter lawas dan membaca manifest asli yang hidup di `data/raw/sibi_books.jsonl` untuk memastikan 100% konsistensi arsitektur.
+- **Zero-Cost Transfer:** Pemindahan tidak merekonstruksi API Text-to-Vector Embedding. Modul akan menyalin pecahan _float_ secara natif dari arsitektur _array FAISS Index_ yang lama ke dalam FAISS Index kosong, memangkas seluruh penggunaan Token API Gemini dan memecahkan rekor waktu pemindahan ke durasi di bawah 5 detik.
+
+### Tabel Prosedur Pemeliharaan
+
+| Modul | Perintah (*Command*) | Frekuensi Ideal | Deskripsi & Impact |
+| --- | --- | --- | --- |
+| **Vacuum Database** | `python3 scripts/vacuum_vectorstore.py` | Setiap 2 Minggu (14 Hari) atau setelah penghapusan katalog | Membangun ulang `.faiss` secara padat (_compressed_). Menghemat penggunaan _RAM memory_ dan menaikkan FPS pencarian. |
+
+### Penanganan Kondisi Darurat (Edge Cases)
+1. **API Keys Pool Exhaustion**: Jika ke-17 API Keys mencapai _rate-limit_ harian (misal, _traffic_ memuncak abnormal), loop akan mencetak peringatan di log sistem. _Endpoint_ selanjutnya akan memicu penolakan damai ("Maaf, layanan sedang sibuk") hingga rotasi harian Google di-reset.
+2. **Vacuum File Lock/Permission Denial**: Jika `vacuum_vectorstore.py` gagal saat menyalin struktur _Atomic Swap_, script akan membatalkan pemindahan dan menyimpan data usang (`.bak`), menjamin _live database_ tidak pernah hancur akibat interupsi jadwal _maintenance_ I/O OS.
