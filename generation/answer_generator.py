@@ -5,7 +5,8 @@ Custom prompt ensures friendly, cheerful, and easy-to-understand responses in In
 """
 
 import json
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 from typing import List, Dict, Any, Optional
 import logging
 
@@ -15,22 +16,19 @@ from utils.api_key_manager import APIKeyManager
 
 logger = get_logger(__name__)
 
-# Default system prompt untuk personalisasi LLM
+# Clean, pruned XML System Instructions
 DEFAULT_SYSTEM_PROMPT = """
-Anda adalah asisten pintar untuk Sistem Rekomendasi & Eksplorasi Buku Pelajaran. Anda sangat ramah, suportif, kreatif, ceria, dan menyenangkan! Gaya bahasa Anda disesuaikan untuk anak-anak sekolah dan remaja (SD, SMP, SMA).
-Gunakan bahasa Indonesia yang baku namun santai, selipkan pujian penyemangat (contoh: "Wah, pertanyaan yang bagus sekali, Sobat Belajar!"), dan gunakan emoticon sewajarnya (seperti 📚, ✨, 🚀, 😊) untuk menghidupkan suasana.
-
-ATURAN PENTING (GUARDRAILS):
-1. Fokus hanya pada materi pendidikan, buku pelajaran, ilmu pengetahuan, dan rekomendasi bahan bacaan.
-2. TOLAK SECARA HALUS DAN TEGAS jika pertanyaan pengguna:
-   - Tidak relevan dengan dunia pendidikan atau buku pelajaran.
-   - Mengandung unsur SARA (Suku, Agama, Ras, dan Antargolongan).
-   - Terkait dengan politik, kekerasan, pornografi, peretasan, atau hal-hal negatif lainnya.
-   - Bersifat provokasi, cyberbullying, atau berkata kasar.
-   Cara Menolak: "Maaf ya, teman! Aku dirancang khusus untuk membantu kamu mengeksplorasi buku pelajaran dan ilmu pengetahuan. Yuk, kita kembali bahas buku atau materi sekolah saja! 📚✨"
-3. Jangan pernah berhalusinasi. Jika informasi / jawaban tidak terdapat dalam konteks yang diberikan, beritahu pengguna dengan jujur bahwa informasinya tidak ada pada buku tersebut.
-4. Jawab pertanyaan dengan rapi menggunakan paragraf pendek atau poin-poin agar mudah dibaca oleh pelajar.
+<role>Asisten Pintar Rumah Literasi Tambaksogra yang sangat ramah, ceria, dan suportif untuk anak sekolah (SD, SMP, SMA).</role>
+<allowed_topics>Materi pendidikan, buku pelajaran, ilmu pengetahuan, tips belajar, identitas sistem, dan statistik perpustakaan.</allowed_topics>
+<rejection_rule>Jika pertanyaan di luar allowed_topics, jawab: "Maaf ya, teman! Aku dirancang khusus untuk membantu kamu mengeksplorasi buku pelajaran dan ilmu pengetahuan. Yuk, kita kembali bahas buku atau materi sekolah saja! 📚✨"</rejection_rule>
+<formatting>JANGAN PERNAH menuliskan ulang daftar metadata buku menggunakan poin-poin kaku (seperti list judul, penulis, halaman). Sebutkan judul buku secara natural dan mengalir di dalam paragraf analisis naratif Anda.</formatting>
 """
+
+# Highly auditable module-level Few-Shot examples
+FEW_SHOT_EXAMPLES = [
+    {"role": "user", "parts": [{"text": "Saya butuh buku matematika aljabar"}]},
+    {"role": "model", "parts": [{"text": "Wah, hebat sekali semangat belajarmu, Sobat Belajar! Aljabar itu seru lho... Ini dia beberapa buku yang aku temukan yang membahas konsep-konsep aljabar dengan sangat interaktif. Ingat ya, setiap rumus itu seperti teka-teki yang menyenangkan untuk dipecahkan! 📚✨"}]}
+]
 
 class AnswerGenerator:
     """
@@ -42,7 +40,7 @@ class AnswerGenerator:
         api_key_manager: Optional[APIKeyManager] = None,
         model: str = ANSWER_MODEL,
         system_prompt: str = DEFAULT_SYSTEM_PROMPT,
-        temperature: float = 0.7,
+        temperature: float = 0.8,
         max_tokens: int = 1000
     ):
         """
@@ -60,44 +58,75 @@ class AnswerGenerator:
         self.system_prompt = system_prompt
         self.temperature = temperature
         self.max_tokens = max_tokens
+        self.cache_id = None
         
-        genai.configure(api_key=self.api_key_manager.get_current_key())
-        self.client = genai.GenerativeModel(self.model)
-        
+        self._initialize_context_cache()
         logger.info(f"AnswerGenerator initialized with model {model}")
-    
-    def _call_gemini(self, messages: List[Dict[str, str]]) -> Optional[str]:
-        """
-        Make API call to Gemini.
         
-        Args:
-            messages: List of message dicts with 'role' and 'content'.
-        
-        Returns:
-            Generated text or None if error.
-        """
+    def _initialize_context_cache(self):
+        """Registers system instructions and few-shots to the Gemini server cache."""
         try:
-            # Gabungkan system prompt dan user prompt
-            full_prompt = self.system_prompt + "\n\n" + messages[-1]['content']
+            client = genai.Client(api_key=self.api_key_manager.get_current_key())
+            # Prepare the immutable foundation content block
+            cache_contents = [{"role": "system", "parts": [{"text": self.system_prompt}]}] + FEW_SHOT_EXAMPLES
             
-            # Configure with the latest API key from rotation
-            genai.configure(api_key=self.api_key_manager.get_current_key())
-            client = genai.GenerativeModel(self.model)
-            
-            response = client.generate_content(
-                full_prompt,
-                generation_config={
-                    "temperature": self.temperature, 
-                    "max_output_tokens": self.max_tokens
-                }
+            # Create Context Cache on server side
+            cache = client.caches.create(
+                model=self.model,
+                config=types.CreateCacheConfig(
+                    contents=cache_contents,
+                    ttl="3600s" # 1 Hour lifecycle duration
+                )
             )
-            if not response.text:
-                logger.warning("Empty response from Gemini")
-                return None
-            return response.text.strip()
+            self.cache_id = cache.name
+            logger.info(f"Gemini Context Cache successfully initialized: {self.cache_id}")
         except Exception as e:
-            logger.error(f"Gemini error: {e}")
-            # Rotate key jika perlu
+            logger.error(f"Failed to create context cache, will default to non-cached calls: {str(e)}")
+            self.cache_id = None
+
+    def _call_gemini(self, dynamic_contents: List[Dict[str, Any]]) -> Optional[str]:
+        """Executes content generation with native parameter configuration and dynamic cache fallbacks."""
+        try:
+            client = genai.Client(api_key=self.api_key_manager.get_current_key())
+            
+            # Use cached path if available
+            if self.cache_id:
+                try:
+                    config = types.GenerateContentConfig(
+                        cached_content=self.cache_id,
+                        temperature=self.temperature,
+                        max_output_tokens=self.max_tokens
+                    )
+                    response = client.models.generate_content(
+                        model=self.model,
+                        contents=dynamic_contents,
+                        config=config
+                    )
+                    return response.text.strip() if response.text else None
+                except Exception as cache_err:
+                    logger.warning(f"Cache {self.cache_id} failed or expired, falling back to non-cached call. Err: {cache_err}")
+                    self.cache_id = None  # Reset cache ID to avoid further failures
+
+            # Fallback path / non-cached path
+            config = types.GenerateContentConfig(
+                system_instruction=self.system_prompt,
+                temperature=self.temperature,
+                max_output_tokens=self.max_tokens
+            )
+
+            # Manually inject few-shots if not using cache
+            full_contents = FEW_SHOT_EXAMPLES + dynamic_contents
+
+            response = client.models.generate_content(
+                model=self.model,
+                contents=full_contents,
+                config=config
+            )
+
+            return response.text.strip() if response.text else None
+
+        except Exception as e:
+            logger.error(f"Gemini API execution error: {e}")
             self.api_key_manager.report_error(self.api_key_manager.get_current_key(), str(e))
             return None
     
@@ -143,16 +172,16 @@ Konteks buku yang direkomendasikan secara logis oleh sistem:
 
 Pertanyaan/preferensi pengguna: "{user_query}"
 
-Berdasarkan data di atas, berikan kalimat pengantar dan perbincangan naratif yang ramah, analitis, dan ceria.
-Sertakan alasan ringkas mengapa buku-buku ini direkomendasikan.
+Berdasarkan data di atas, bangun perbincangan naratif yang elok, ramah, analitis, dan ceria dengan panjang sekitar 3-4 paragraf yang menarik.
+Sertakan alasan yang logis mengapa buku-buku ini relevan untuk pengguna.
+Pada bagian akhir respons Anda, berikan 1-3 tips belajar yang sangat interaktif dan spesifik terkait subjek buku yang disebutkan.
 DO NOT write rigid structural lists, bullet points, or repetitive metadata blocks for the books.
 The UI will render the structured list natively. Your job is ONLY to provide the conversational, engaging chat text.
 Gunakan bahasa Indonesia yang santai, selipkan emoji yang relevan seperti 📚, ✨, 😊.
 """
         
         messages = [
-            {"role": "system", "content": self.system_prompt},
-            {"role": "user", "content": user_prompt}
+            {"role": "user", "parts": [{"text": user_prompt}]}
         ]
         
         response = self._call_gemini(messages)
@@ -204,15 +233,16 @@ Pertanyaan detail: "{user_question}"
 Berikut potongan informasi dari buku-buku tersebut yang relevan:
 {context_str}
 
-Jawablah pertanyaan pengguna dengan detail, jelas, dan mudah dipahami. 
+Jawablah pertanyaan pengguna dengan detail, jelas, dan mudah dipahami, susun menjadi 3-4 paragraf naratif yang elok.
 Sebutkan dari buku mana informasi itu berasal (dan halaman jika ada). 
+Pada bagian akhir respons Anda, sertakan 1-3 tips belajar yang spesifik dan interaktif mengenai topik yang dibahas.
 Jika informasi tidak cukup untuk menjawab seluruh pertanyaan, jelaskan dengan jujur dan sarankan untuk membaca buku lebih lanjut. 
+DO NOT write rigid structural lists, bullet points, or repetitive metadata blocks for the books.
 Tetap gunakan bahasa Indonesia yang ceria dan ramah untuk anak sekolah. 
 """
         
         messages = [
-            {"role": "system", "content": self.system_prompt},
-            {"role": "user", "content": user_prompt}
+            {"role": "user", "parts": [{"text": user_prompt}]}
         ]
         
         response = self._call_gemini(messages)

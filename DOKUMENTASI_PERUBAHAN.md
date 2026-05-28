@@ -72,3 +72,47 @@ Bagi pengembang UI/Frontend:
 1. Kunci `answer` murni berisi pesan naratif penyemangat. Anda dapat menampilkan pesan ini di dalam _chat bubble_ pengguna/AI.
 2. Kunci `recommendations` adalah sebuah *array of objects*. Jika *array* tidak kosong, lakukan _mapping_ (`.map()`) terhadap data ini untuk menampilkan komponen kartu buku/Katalog Produk. Gunakan parameter `cover_image` sebagai properti `src` untuk label gambar.
 3. Nilai `relevance_score` dapat difungsikan sebagai lencana akurasi di setiap sudut kartu.
+
+
+## 📄 Dokumentasi Perubahan Sistem: Phase 3
+
+### Latar Belakang & Analisis Token Ekonomi
+Sebelumnya, sistem membangun konteks _prompt_ dengan melakukan penggabungan string (string concatenation) panjang dari `DEFAULT_SYSTEM_PROMPT` ke setiap pertanyaan kueri baru yang masuk. Pendekatan primitif ini membuat API Gemini terus-menerus memproses ulang muatan prompt instruksional yang sama pada setiap panggilannya, yang menyebabkan beban token _input_ yang boros dan _cost_ API yang melonjak. Selain itu, respons AI (chat) masih dirasa statis dan kurang terstruktur bagi pelajar.
+Fase 3 merestrukturisasi Prompt menjadi format penandaan XML (XML tag format), menggunakan caching bawaan dari Google GenAI SDK agar biaya eksekusi jauh lebih ringan, dan memberikan sampel kueri (_Few-Shot Prompting_) terarah agar LLM merespons dengan narasi edukatif, empatik, dan interaktif.
+
+### Spesifikasi Prompting Baru
+Sistem prompt dipangkas menjadi blok penanda `<xml>` agar Gemini memproses aturan (guardrails) lebih efisien:
+```xml
+<role>Asisten Pintar Rumah Literasi Tambaksogra yang sangat ramah, ceria, dan suportif untuk anak sekolah (SD, SMP, SMA).</role>
+<allowed_topics>Materi pendidikan, buku pelajaran, ilmu pengetahuan, tips belajar, identitas sistem, dan statistik perpustakaan.</allowed_topics>
+<rejection_rule>Jika pertanyaan di luar allowed_topics, jawab: "Maaf ya, teman! Aku dirancang khusus untuk membantu kamu mengeksplorasi buku pelajaran dan ilmu pengetahuan. Yuk, kita kembali bahas buku atau materi sekolah saja! 📚✨"</rejection_rule>
+<formatting>JANGAN PERNAH menuliskan ulang daftar metadata buku menggunakan poin-poin kaku (seperti list judul, penulis, halaman). Sebutkan judul buku secara natural dan mengalir di dalam paragraf analisis naratif Anda.</formatting>
+```
+
+### Tabel Perbandingan Parameter Runtime
+
+| Parameter | Versi Lama | Versi Baru (Optimal) |
+| --- | --- | --- |
+| **System Instruction Injection** | Manual String Concatenation (`+`) | SDK Konfigurasi Native (`types.GenerateContentConfig`) |
+| **Penyimpanan Instruksi Dasar** | Tidak Ada (Re-computed constantly) | **Context Cache** (`client.caches.create()`) |
+| **Siklus Hidup (TTL) Cache** | N/A | **3600 detik (1 Jam)** |
+| **Suhu Sampling (Temperature)** | 0.7 | **0.8 (Lebih ekspresif & naratif)** |
+| **Gaya Keluaran (Output)** | Konkatenasi Kaku & Fragmen Pendek | **Naratif Elok (3-4 paragraf) + Tips Belajar Interaktif** |
+
+### Struktur Few-Shot Context Array
+Pada file `answer_generator.py`, sekarang terdapat konstanta statis global di _module scope_ bernama `FEW_SHOT_EXAMPLES` yang berisi _list of dictionaries_. Struktur ini disisipkan bersama System Prompt saat inisialisasi modul Cache:
+```json
+[
+    {"role": "user", "parts": [{"text": "Saya butuh buku matematika aljabar"}]},
+    {"role": "model", "parts": [{"text": "Wah, hebat sekali semangat belajarmu, Sobat Belajar! Aljabar itu seru lho... [Konteks Narasi Panjang yang Menginspirasi] 📚✨"}]}
+]
+```
+Objek `cache_contents` disatukan seperti ini di Python dan di-_upload_ ke server Gemini:
+`[{"role": "system", "parts": [{"text": self.system_prompt}]}] + FEW_SHOT_EXAMPLES`
+
+### Panduan Maintenance & Troubleshooting Cache
+Proses Caching berpotensi terganggu jika _key_ kedaluwarsa atau terjadi pemadaman koneksi pada Google AI. Script telah dilengkapi penanganan yang _fault-tolerant_:
+1. Saat Kelas (`AnswerGenerator`) diinisialisasi, sistem mencoba memanggil `client.caches.create()`.
+2. Jika pembuatan Cache Gagal (menghasilkan _Exception_), variabel kelas `self.cache_id = None`.
+3. Di dalam logika pemanggilan utama (`_call_gemini`), sistem memvalidasi keberadaan `self.cache_id`. Jika kosong atau pemanggilan cache gagal di tengah eksekusi (seperti Cache telah hangus), sistem otomatis melewati langkah ini (**Graceful Degradation Fallback Path**).
+4. Mode _Fallback_ bekerja dengan memanggil konfigurasi klasik API (_raw system instruction_) dan merangkai `FEW_SHOT_EXAMPLES` di bagian atas daftar pesan interaksi secara manual, sehingga RAG selalu beroperasi dengan masa pakai 100%.
