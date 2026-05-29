@@ -145,3 +145,45 @@ Modul baru dibuat di `scripts/vacuum_vectorstore.py` yang difungsikan sebagai Sc
 ### Penanganan Kondisi Darurat (Edge Cases)
 1. **API Keys Pool Exhaustion**: Jika ke-17 API Keys mencapai _rate-limit_ harian (misal, _traffic_ memuncak abnormal), loop akan mencetak peringatan di log sistem. _Endpoint_ selanjutnya akan memicu penolakan damai ("Maaf, layanan sedang sibuk") hingga rotasi harian Google di-reset.
 2. **Vacuum File Lock/Permission Denial**: Jika `vacuum_vectorstore.py` gagal saat menyalin struktur _Atomic Swap_, script akan membatalkan pemindahan dan menyimpan data usang (`.bak`), menjamin _live database_ tidak pernah hancur akibat interupsi jadwal _maintenance_ I/O OS.
+
+
+## 📄 Panduan Evaluasi dan Verifikasi Integrasi Sistem
+
+### Latar Belakang Evaluasi
+Sebagai tahapan Quality Assurance (QA) akhir dari serangkaian Phase 1 hingga Phase 4, panduan ini disusun untuk memastikan bahwa sistem RAG berjalan selaras. Evaluasi ini mencakup aliran data yang dimodifikasi, decoupling JSON response yang meringankan tugas LLM, migrasi skema _chunking_ ke ukuran optimal 2048, mekanisme _Failover_ kunci API, dan modul penyortiran FAISS.
+Semua referensi ke `data/metadata/books.json` telah dipastikan usang di tingkat pengambilan data dan digantikan sepenuhnya oleh entitas master `data/raw/sibi_books.jsonl`. Namun, beberapa legacy code di _admin routes_ dan modul _ingestion/update_ masih merujuk ke konstan `METADATA_FILE`, yang untuk saat ini ditoleransi oleh sistem _legacy_ selama siklus read/write sinkron dengan indeks vektor. Modul _Vacuum_ vektor berjalan 100% menggunakan `sibi_books.jsonl`.
+
+### Tabel Peta Hubungan Antar-Komponen (Dependency Matrix)
+
+| Source Component | Target Component | Variabel yang Ditransfer | Verifikasi Interaksi (QA Check) |
+| --- | --- | --- | --- |
+| `config/settings.py` | Seluruh Modul | `CHUNK_SIZE`, `MIN_CHUNK_LEN`, `FULLTEXT_INDEX_PATH` | Pastikan `retriever.py` dan `vacuum_vectorstore.py` memuat _path_ yang tepat (seperti `chunks_index.faiss`). |
+| `api/routes/recommend.py` | `retrieval/retriever.py` | `user_query`, `query_vector` | Pengecekan pada `search_summary()` membuktikan `initial_k=100` dieksekusi sebelum _filtering_ metadata. |
+| `retrieval/reranker.py` | `api/routes/recommend.py` | Kumpulan `reranked_results` (`List[Dict]`) | Array divalidasi dengan operator `relevance_score >= 0.60`. Respons JSON membungkus `cover_image` yang diekstrak lurus dari kunci internal indeks `link_sampul`. |
+| `generation/answer_generator.py` | `google.genai` (SDK) | `user_prompt`, `FEW_SHOT_EXAMPLES` | Terpantau bahwa _string concat_ tidak dipakai; konfigurasi disuntik via `types.GenerateContentConfig()`. Caching berjalan lewat identifikasi unik `self.cache_id`. |
+| `generation/answer_generator.py` | `utils/api_key_manager.py`| `current_key`, `error_status` | Saat eksepsi terjadi, `report_error()` dipanggil, variabel `attempts` bertambah, dan _Failover Swap_ menjamin rotasi lancar. |
+| `scripts/vacuum_vectorstore.py` | `embedding/vector_store.py`| `raw_vector` (Float32 Array) | ID dari `sibi_books.jsonl` dirajut masuk untuk mencungkil array via `.reconstruct()`. API _cost_ mutlak 0 (Nihil). |
+
+### Rencana Pengujian Integrasi (E2E Test Cases)
+
+| Nama Skenario (Scenario) | Contoh Payload (Input) | Ekspektasi Field (Output JSON) | Kriteria Sukses (Acceptance) |
+| --- | --- | --- | --- |
+| **TC-01: Validasi Normal Kueri Relevan** | `{"query": "Buku IPA kelas 7 tentang sel"}` | `status: success`, `recommendations: [...]`, `answer: "Halo!..."` | Mengembalikan 1-5 buku dengan skor $\ge$ 0.60, `answer` berupa 3-4 paragraf narasi ceria, serta tidak ada meta-list kasar pada narasi. |
+| **TC-02: Validasi Degradasi (Degradation)** | `{"query": "Buku nuklir terlarang"}` | `status: success`, `recommendations: []`, `answer: "Maaf ya..."` | Karena filter reranking atau guardrails XML berjalan, _recommendations_ kosong, lalu teks balasan penolakan elok dikirim (tanpa memicu _Crash 500_). |
+| **TC-03: Validasi Failover API Rate Limit** | *(Menyimulasikan 429 Too Many Requests pada key ke-1)* | `status: success`, `recommendations: [...]`, `answer: "..."` | Endpoint sukses dalam satu kali call dari _frontend_ walau secara internal terjadi `try-except` dan pergantian indeks API Key dari manajer kunci. |
+| **TC-04: Validasi Integritas File JSON Response** | `{"query": "buku cerita sejarah SMP"}` | `cover_image`, `relevance_score`, `similarity_score` | _Field_ `cover_image` memiliki URL string, bukan _null_. Semua angka _scoring_ berbentuk Float. |
+
+### Panduan Penanganan Kegagalan Integrasi (Troubleshooting Blueprint)
+
+1. **Kasus:** Layanan menerima Response `500` saat Generasi Gemini (All Keys Exhausted).
+   - **Diagnosa:** Mengecek log `logs/api.log`. Cari pesan *"All available Gemini API keys in the rotation pool have been exhausted"*.
+   - **Tindakan Lanjutan:** Tunggu siklus reset harian (24 jam) dari sistem kuota Google AI atau tambah _pool_ API key (`GEMINI_API_KEY_18`, dst) di file `.env` untuk meningkatkan batas limit mingguan instansi.
+2. **Kasus:** Proses `AnswerGenerator` mengembalikan peringatan "Cache failed or expired".
+   - **Diagnosa:** Cache 1 Jam (3600 detik) telah usang atau layanan peladen Google GenAI mematikan _cache_ lebih awal.
+   - **Tindakan Lanjutan:** Sistem dirancang aman dari kasus ini (_Graceful Degradation_). Biarkan beroperasi di jalur lambat (_Fallback path_) yang otomatis mengambil instruksi XML mentah. Cache akan tercipta ulang pada *boot/restart* server selanjutnya.
+3. **Kasus:** Pemindahan Vektor (Vacuum) gagal dan mengeluarkan peringatan "Atomic swap aborted".
+   - **Diagnosa:** Bisa terjadi jika sistem direktori tidak mengizinkan _override_ (permission linux) pada folder `data/faiss/` atau ada indeks mentah (_sibi_books.jsonl_) yang kosong.
+   - **Tindakan Lanjutan:** Cek _permissions_ `chmod 755 data/faiss/`. Pulihkan database lama dengan mengubah nama `chunks_index.faiss.bak` kembali menjadi `chunks_index.faiss`.
+4. **Kasus:** Jawaban AI tiba-tiba berisi format _List_ yang kaku.
+   - **Diagnosa:** Rantai kontrol `temperature=0.8` tidak cukup menekan model, atau instruksi negatif pada XML (`<formatting>`) bocor karena parameter `max_output_tokens` meluap.
+   - **Tindakan Lanjutan:** Periksa file _log_ untuk memastikan Cache memuat `<formatting>JANGAN PERNAH...`.
