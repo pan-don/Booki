@@ -39,18 +39,18 @@ JINA_RERANK_MODEL = os.getenv("JINA_RERANK_MODEL", "jina-reranker-v3")
 JINA_API_URL = os.getenv("JINA_API_URL", "https://api.jina.ai/v1/rerank")
 
 # CHUNKING CONFIG
-CHUNK_SIZE = int(os.getenv("CHUNK_SIZE", 30000))
-CHUNK_OVERLAP = int(os.getenv("CHUNK_OVERLAP", 1000))
+CHUNK_SIZE = int(os.getenv("CHUNK_SIZE", 2048))
+CHUNK_OVERLAP = int(os.getenv("CHUNK_OVERLAP", 250))
 MIN_PARAGRAPH_LEN = int(os.getenv("MIN_PARAGRAPH_LEN", 30))
-MIN_CHUNK_LEN = int(os.getenv("MIN_CHUNK_LEN", 1000))
+MIN_CHUNK_LEN = int(os.getenv("MIN_CHUNK_LEN", 500))
 
 # PATHS
 BASE_DIR = Path(__file__).resolve().parent.parent
 DATA_DIR = BASE_DIR / "data"
 METADATA_FILE = DATA_DIR / "metadata" / "books.json"
 FAISS_DIR = DATA_DIR / "faiss"
-SUMMARY_INDEX_PATH = FAISS_DIR / "summary_index.faiss"
-FULLTEXT_INDEX_PATH = FAISS_DIR / "fulltext_index.faiss"
+SUMMARY_INDEX_PATH = FAISS_DIR / "rec_index.faiss"
+FULLTEXT_INDEX_PATH = FAISS_DIR / "chunks_index.faiss"
 
 # Ensure directories exist
 DATA_DIR.mkdir(parents=True, exist_ok=True)
