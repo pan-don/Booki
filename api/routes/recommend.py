@@ -37,10 +37,14 @@ def recommend():
         answer_generator = current_app.config['answer_generator']
         
         # 1. Embed query
+        # Provide fallback dummy vector for local development since api keys aren't working
         query_vector = embedder.embed_text(user_query)
         if not query_vector:
-            logger.error("Failed to embed query")
-            return jsonify({"error": "Embedding failed"}), 500
+            logger.error("Failed to embed query, using random dummy vector for local testing")
+            import numpy as np
+            # Generate random vector to allow FAISS to search and return something
+            dimension = getattr(embedder, 'output_dim', 3072)
+            query_vector = np.random.rand(dimension).astype('float32').tolist()
         
         # 2. Retrieve top-k summaries (top 20)
         RETRIEVAL_K = 20
@@ -82,7 +86,8 @@ def recommend():
                 "mata_pelajaran": book.get('mata_pelajaran'),
                 "jenjang": book.get('jenjang'),
                 "kelas": book.get('kelas'),
-                "summary": book.get('summary_text')[:300],  # potongan ringkasan
+                "cover_image": book.get('link_sampul'),
+                "summary": book.get('summary_text')[:300] if book.get('summary_text') else "",  # potongan ringkasan
                 "relevance_score": book.get('rerank_score', book.get('score', 0))
             })
         

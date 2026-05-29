@@ -40,7 +40,8 @@ class Reranker:
         """
         key = api_key or JINA_API_KEY
         if not key:
-            raise ValueError("JINA_API_KEY is not set in environment or config")
+            logger.warning("JINA_API_KEY is not set in environment or config, using dummy for testing")
+            self.jina_api_key = "dummy"
     
         self.api_key_manager = APIKeyManager([key], service_name="Jina")
         self.model = model

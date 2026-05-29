@@ -54,12 +54,36 @@ const API = {
     },
 
     // ---- ADMIN CONTROL ----
-    addBook: async (bookData) => {
-        return requestJson("/admin/add", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(bookData)
-        });
+    addBook: async (formData) => {
+        const url = `${BASE_URL}/admin/add`;
+        const startTime = Date.now();
+        let response;
+        try {
+            response = await fetch(url, {
+                method: "POST",
+                body: formData // No Content-Type header so browser sets multipart/form-data with boundary
+            });
+        } catch (error) {
+            console.error(`[API] POST ${url} - network error`, error);
+            throw new Error(`Network error: ${error.message}`);
+        }
+
+        let payload = null;
+        try {
+            payload = await response.json();
+        } catch (error) {
+            payload = null;
+        }
+
+        const durationMs = Date.now() - startTime;
+        if (!response.ok) {
+            const message = (payload && (payload.error || payload.message)) || response.statusText;
+            console.error(`[API] POST ${url} ${response.status} (${durationMs}ms)`, payload);
+            throw new Error(`${response.status} ${message}`);
+        }
+
+        console.info(`[API] POST ${url} ${response.status} (${durationMs}ms)`);
+        return payload;
     },
 
     updateBook: async (id, bookData) => {
