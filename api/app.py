@@ -13,9 +13,10 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from config.settings import (
-    SUMMARY_INDEX_PATH, FULLTEXT_INDEX_PATH
+    SUMMARY_INDEX_PATH, FULLTEXT_INDEX_PATH, FRONTEND_URL
 )
 from utils.logger import configure_root_logger, get_logger
+from utils.api_key_manager import create_gemini_embedding_key_manager, create_gemini_qa_key_manager
 from embedding.vector_store import SummaryVectorStore, FulltextVectorStore
 from embedding.embedder import GeminiEmbedder
 from retrieval.retriever import Retriever
@@ -35,14 +36,19 @@ def create_app() -> Flask:
     app = Flask(__name__)
     
     # Enable CORS for frontend (Cloudflare)
-    CORS(app, origins=["*"])  # Sesuaikan dengan domain frontend nanti
+    CORS(app, origins=[FRONTEND_URL], methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"], allow_headers=["Content-Type", "Authorization"])
     
     # ---------------- Load Global Components ----------------
     try:
         logger.info("Initializing global components...")
         
+        # Isolated API Key Managers
+        embedding_key_manager = create_gemini_embedding_key_manager()
+        qa_key_manager = create_gemini_qa_key_manager()
+        logger.info("Isolated API Key Managers initialized.")
+
         # Embedder
-        embedder = GeminiEmbedder()
+        embedder = GeminiEmbedder(key_manager=embedding_key_manager)
         logger.info("GeminiEmbedder initialized")
         
         # Get embedding dimension from dummy call (or from config)
@@ -64,7 +70,7 @@ def create_app() -> Flask:
         reranker = Reranker()
         
         # Answer generator
-        answer_generator = AnswerGenerator()
+        answer_generator = AnswerGenerator(api_key_manager=qa_key_manager)
         
         # Store components in app config (or app.extensions) for use in routes
         app.config['embedder'] = embedder
