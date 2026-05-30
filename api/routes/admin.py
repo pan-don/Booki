@@ -19,10 +19,18 @@ from utils.logger import get_logger
 logger = get_logger(__name__)
 admin_bp = Blueprint('admin', __name__)
 
-from config.settings import METADATA_FILE, SUMMARY_INDEX_PATH, FULLTEXT_INDEX_PATH
+import os
+import math
+import uuid
+import json
+import threading
+from werkzeug.utils import secure_filename
+from config.settings import METADATA_FILE, DATA_DIR, SUMMARY_INDEX_PATH, FULLTEXT_INDEX_PATH
 from embedding.embedder import GeminiEmbedder
 from embedding.vector_store import SummaryVectorStore, FulltextVectorStore
 from utils.file_utils import read_json, write_json
+
+RAW_DATA_FILE = DATA_DIR / "raw" / "sibi_books.jsonl"
 
 try:
     from scripts.add_book import add_new_book
@@ -169,6 +177,54 @@ def admin_health():
     }), 200
 
 
+@admin_bp.route('/admin/books', methods=['GET'])
+def get_admin_books():
+    """
+    Returns a paginated list of books from the source-of-truth ledger.
+    """
+    try:
+        page = int(request.args.get('page', 1))
+        limit = int(request.args.get('limit', 20))
+        if page < 1 or limit < 1:
+            return jsonify({"error": "Invalid pagination parameters"}), 400
+
+        if not RAW_DATA_FILE.exists():
+            return jsonify({
+                "books": [],
+                "total_books": 0,
+                "total_pages": 0,
+                "current_page": page
+            }), 200
+
+        all_books = []
+        with open(RAW_DATA_FILE, 'r', encoding='utf-8') as f:
+            for line in f:
+                if line.strip():
+                    try:
+                        all_books.append(json.loads(line))
+                    except json.JSONDecodeError:
+                        continue
+
+        total_books = len(all_books)
+        total_pages = math.ceil(total_books / limit)
+
+        # Exact slicing
+        start_idx = (page - 1) * limit
+        end_idx = start_idx + limit
+        paginated_books = all_books[start_idx:end_idx]
+
+        return jsonify({
+            "books": paginated_books,
+            "total_books": total_books,
+            "total_pages": total_pages,
+            "current_page": page
+        }), 200
+
+    except Exception as e:
+        logger.error(f"Failed to fetch paginated books: {e}", exc_info=True)
+        return jsonify({"error": "Internal server error reading catalog"}), 500
+
+
 @admin_bp.route('/admin/status', methods=['GET'])
 def admin_status():
     try:
@@ -207,48 +263,63 @@ def admin_status():
 
 @admin_bp.route('/admin/add', methods=['POST'])
 def admin_add_book():
-    data = request.get_json() or {}
-    title = (data.get("title") or "").strip()
-    summary = (data.get("summary") or "").strip()
-    raw_metadata = data.get("metadata")
-
-    if not title:
-        return jsonify({"error": "Title is required"}), 400
-    if not summary:
-        return jsonify({"error": "Summary is required"}), 400
-
-    metadata_dict = _parse_metadata_field(raw_metadata) or {}
-    book_id = data.get("book_id") or metadata_dict.get("book_id") or str(uuid.uuid4())[:16]
-
-    book_data = {
-        "book_id": book_id,
-        "judul_buku": title,
-        "title": title,
-        "summary_text": summary
-    }
-    book_data.update(metadata_dict)
-
     try:
-        pdf_path = book_data.get("pdf_path") or book_data.get("link_pdf")
-        if pdf_path and ADD_BOOK_AVAILABLE:
-            success = add_new_book(book_data, interactive=False, override_summary=summary)
-            if not success:
-                return jsonify({"error": "Failed to add book with PDF ingestion"}), 500
-            return jsonify({
-                "status": "ok",
-                "message": "Book added with full ingestion",
-                "book_id": book_id
-            }), 201
+        title = request.form.get("title", "").strip()
+        summary = request.form.get("summary", "").strip()
+        jenjang = request.form.get("jenjang", "").strip()
+        kelas = request.form.get("kelas", "").strip()
+        mapel = request.form.get("mata_pelajaran", "").strip()
 
-        _add_summary_only_book(book_data)
+        file = request.files.get('file')
+
+        if not title:
+            return jsonify({"error": "Title is required"}), 400
+
+        book_id = str(uuid.uuid4())[:16]
+
+        pdf_path_str = ""
+        if file and file.filename:
+            filename = secure_filename(file.filename)
+            upload_dir = DATA_DIR / "uploads"
+            upload_dir.mkdir(parents=True, exist_ok=True)
+            pdf_path = upload_dir / f"{book_id}_{filename}"
+            file.save(pdf_path)
+            pdf_path_str = str(pdf_path)
+
+        book_data = {
+            "book_id": book_id,
+            "judul_buku": title,
+            "title": title,
+            "summary_text": summary,
+            "jenjang": jenjang,
+            "kelas": kelas,
+            "mata_pelajaran": mapel,
+            "pdf_path": pdf_path_str
+        }
+
+        # Lazy import to avoid circular dependency
+        from scripts.add_book import add_new_book
+
+        if pdf_path_str:
+            success = add_new_book(book_data, interactive=False, override_summary=summary if summary else None)
+            if not success:
+                return jsonify({"error": "Failed to ingest PDF into RAG pipeline"}), 500
+        else:
+            _add_summary_only_book(book_data)
+
+        # Write to JSONL
+        with open(RAW_DATA_FILE, 'a', encoding='utf-8') as f:
+            f.write(json.dumps(book_data, ensure_ascii=False) + "\n")
+
         return jsonify({
             "status": "ok",
-            "message": "Book added to summary index only (no PDF provided)",
+            "message": "Book ingested successfully",
             "book_id": book_id
         }), 201
+
     except Exception as e:
         logger.error(f"Failed to add book: {e}", exc_info=True)
-        return jsonify({"error": "Failed to add book"}), 500
+        return jsonify({"error": "Internal server error during ingestion"}), 500
 
 
 @admin_bp.route('/admin/update/<book_id>', methods=['PUT'])
@@ -272,17 +343,32 @@ def admin_update_book(book_id):
         new_metadata["summary_text"] = summary
 
     try:
+        from scripts.update_book import update_book_metadata
         success = update_book_metadata(book_id, new_metadata)
         if not success:
-            return jsonify({"error": "Failed to update book"}), 500
+            return jsonify({"error": "Failed to update book metadata in vector store"}), 500
+
+        # Update JSONL safely
+        if RAW_DATA_FILE.exists():
+            updated_lines = []
+            with open(RAW_DATA_FILE, 'r', encoding='utf-8') as f:
+                for line in f:
+                    if not line.strip(): continue
+                    row = json.loads(line)
+                    if row.get("book_id") == book_id:
+                        row.update(new_metadata)
+                    updated_lines.append(json.dumps(row, ensure_ascii=False))
+            with open(RAW_DATA_FILE, 'w', encoding='utf-8') as f:
+                f.write("\n".join(updated_lines) + "\n")
+
         return jsonify({
             "status": "ok",
-            "message": "Book updated",
+            "message": "Book updated successfully",
             "book_id": book_id
         }), 200
     except Exception as e:
         logger.error(f"Failed to update book {book_id}: {e}", exc_info=True)
-        return jsonify({"error": "Failed to update book"}), 500
+        return jsonify({"error": "Internal server error during update"}), 500
 
 
 @admin_bp.route('/admin/delete/<book_id>', methods=['DELETE'])
@@ -291,17 +377,34 @@ def admin_delete_book(book_id):
         return jsonify({"error": "Delete function not available"}), 500
 
     try:
-        success = delete_book(book_id)
+        from scripts.delete_book import delete_book as delete_from_vector
+        success = delete_from_vector(book_id)
         if not success:
-            return jsonify({"error": "Failed to delete book"}), 500
+            logger.warning("Vector store deletion failed or book not found in index, proceeding with file deletion.")
+
+        # Safe JSONL deletion
+        if RAW_DATA_FILE.exists():
+            retained_lines = []
+            with open(RAW_DATA_FILE, 'r', encoding='utf-8') as f:
+                for line in f:
+                    if not line.strip(): continue
+                    row = json.loads(line)
+                    if row.get("book_id") != book_id:
+                        retained_lines.append(line.strip())
+            with open(RAW_DATA_FILE, 'w', encoding='utf-8') as f:
+                if retained_lines:
+                    f.write("\n".join(retained_lines) + "\n")
+                else:
+                    f.write("")
+
         return jsonify({
             "status": "ok",
-            "message": "Book deleted",
+            "message": "Book deleted successfully",
             "book_id": book_id
         }), 200
     except Exception as e:
         logger.error(f"Failed to delete book {book_id}: {e}", exc_info=True)
-        return jsonify({"error": "Failed to delete book"}), 500
+        return jsonify({"error": "Internal server error during deletion"}), 500
 
 
 # Optional: Endpoint to check ingestion status (if you want to track)

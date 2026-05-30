@@ -46,7 +46,9 @@ def update_book_metadata(book_id: str, new_metadata: Dict[str, Any]) -> bool:
     # We do NOT re-summarize, we just recreate the enhanced embedding string and update FAISS.
     try:
         # Load embedding dimension via a dummy embed
-        embedder = GeminiEmbedder()
+        from utils.api_key_manager import create_gemini_embedding_key_manager
+        embedding_key_manager = create_gemini_embedding_key_manager()
+        embedder = GeminiEmbedder(key_manager=embedding_key_manager)
         dimension = len(embedder.embed_text("test"))
         
         summary_store = SummaryVectorStore(SUMMARY_INDEX_PATH, dimension=dimension)
