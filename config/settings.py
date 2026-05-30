@@ -5,25 +5,24 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # GEMINI CONFIG
-GEMINI_API_KEY = [
-    os.getenv("GEMINI_API_KEY_1"),
-    os.getenv("GEMINI_API_KEY_2"),
-    os.getenv("GEMINI_API_KEY_3"),
-    os.getenv("GEMINI_API_KEY_4"),
-    os.getenv("GEMINI_API_KEY_5"),
-    os.getenv("GEMINI_API_KEY_6"),
-    os.getenv("GEMINI_API_KEY_7"),
-    os.getenv("GEMINI_API_KEY_8"),
-    os.getenv("GEMINI_API_KEY_9"),
-    os.getenv("GEMINI_API_KEY_10"),
-    os.getenv("GEMINI_API_KEY_11"),
-    os.getenv("GEMINI_API_KEY_12"),
-    os.getenv("GEMINI_API_KEY_13"),
-    os.getenv("GEMINI_API_KEY_14"),
-    os.getenv("GEMINI_API_KEY_15"),
-    os.getenv("GEMINI_API_KEY_16"),
-    os.getenv("GEMINI_API_KEY_17")
-]
+ALLOCATION_EMBEDDING_INDICES = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+ALLOCATION_QA_INDICES = [11, 12, 13, 14, 15, 16, 17]
+
+def _load_gemini_keys(indices):
+    keys = []
+    for idx in indices:
+        key = os.getenv(f"GEMINI_API_KEY_{idx}")
+        if key:
+            clean_key = key.strip()
+            if clean_key:
+                keys.append(clean_key)
+    return keys
+
+GEMINI_EMBEDDING_KEYS = _load_gemini_keys(ALLOCATION_EMBEDDING_INDICES)
+GEMINI_QA_KEYS = _load_gemini_keys(ALLOCATION_QA_INDICES)
+
+# Fallback for deprecated usages expecting GEMINI_API_KEY
+GEMINI_API_KEY = GEMINI_EMBEDDING_KEYS + GEMINI_QA_KEYS
 
 GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
 EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "gemini-embedding-2")
@@ -43,6 +42,8 @@ CHUNK_SIZE = int(os.getenv("CHUNK_SIZE", 2048))
 CHUNK_OVERLAP = int(os.getenv("CHUNK_OVERLAP", 250))
 MIN_PARAGRAPH_LEN = int(os.getenv("MIN_PARAGRAPH_LEN", 30))
 MIN_CHUNK_LEN = int(os.getenv("MIN_CHUNK_LEN", 500))
+
+FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
 
 # PATHS
 BASE_DIR = Path(__file__).resolve().parent.parent

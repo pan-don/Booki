@@ -85,12 +85,23 @@ class APIKeyManager:
                 self.current_idx = 0
 
 
+def create_gemini_embedding_key_manager() -> "APIKeyManager":
+    """Factory to create key manager for Gemini embedding pool."""
+    from config.settings import GEMINI_EMBEDDING_KEYS
+    return APIKeyManager(GEMINI_EMBEDDING_KEYS, service_name="Gemini-Embedding")
+
+def create_gemini_qa_key_manager() -> "APIKeyManager":
+    """Factory to create key manager for Gemini QA pool."""
+    from config.settings import GEMINI_QA_KEYS
+    return APIKeyManager(GEMINI_QA_KEYS, service_name="Gemini-QA")
+
 # Convenience function for usage with config settings
 def create_gemini_key_manager() -> "APIKeyManager":
-    """Factory to create key manager for Gemini using config settings."""
-    from config.settings import GEMINI_API_KEY
-    return APIKeyManager(GEMINI_API_KEY, service_name="Gemini")
-
+    """
+    Deprecated: Factory to create key manager for Gemini using config settings.
+    Kept for backward compatibility. Uses the embedding pool by default.
+    """
+    return create_gemini_embedding_key_manager()
 
 def create_jina_key_manager() -> "APIKeyManager":
     """Factory for Jina API (single key for now)."""
