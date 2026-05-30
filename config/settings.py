@@ -51,7 +51,7 @@ DATA_DIR = BASE_DIR / "data"
 METADATA_FILE = DATA_DIR / "metadata" / "books.json"
 FAISS_DIR = DATA_DIR / "faiss"
 SUMMARY_INDEX_PATH = FAISS_DIR / "rec_index.faiss"
-FULLTEXT_INDEX_PATH = FAISS_DIR / "chunks_index.faiss"
+FULLTEXT_INDEX_PATH = FAISS_DIR / "chunks_index_new.faiss"
 
 # Ensure directories exist
 DATA_DIR.mkdir(parents=True, exist_ok=True)
