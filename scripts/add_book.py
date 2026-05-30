@@ -213,7 +213,11 @@ def add_new_book(book_data: Dict[str, Any], interactive: bool = True, override_s
         import uuid
         book_data["book_id"] = str(uuid.uuid4())[:16]
         
-    embedder = GeminiEmbedder()
+    # Phase 1 Alignment: Must inject embedding key manager explicitly
+    from utils.api_key_manager import create_gemini_embedding_key_manager
+    embedding_key_manager = create_gemini_embedding_key_manager()
+    embedder = GeminiEmbedder(key_manager=embedding_key_manager)
+
     # Dummy to initialize client/dimension
     dimension = len(embedder.embed_text("test"))
     
@@ -278,8 +282,10 @@ def main():
         add_new_book(book, interactive=args.interactive)
         return
     
-    # Initialize embedder (needed for all books)
-    embedder = GeminiEmbedder()  # asumsi sudah handle API key manager internally
+    # Phase 1 Alignment: Initialize embedder strictly from embedding pool
+    from utils.api_key_manager import create_gemini_embedding_key_manager
+    embedding_key_manager = create_gemini_embedding_key_manager()
+    embedder = GeminiEmbedder(key_manager=embedding_key_manager)
     
     # Get embedding dimension from first embed (or from model)
     # We'll determine dimension by embedding a dummy text

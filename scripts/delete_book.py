@@ -37,7 +37,9 @@ def delete_book(book_id: str) -> bool:
         
     try:
         # Determine dimension and load vector stores
-        embedder = GeminiEmbedder()
+        from utils.api_key_manager import create_gemini_embedding_key_manager
+        embedding_key_manager = create_gemini_embedding_key_manager()
+        embedder = GeminiEmbedder(key_manager=embedding_key_manager)
         dimension = len(embedder.embed_text("test"))
         
         # Soft delete from Summary Index
